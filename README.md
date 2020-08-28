@@ -30,7 +30,7 @@ At this time, there are only four publicly exposed functions to utilize for acqu
 
 The full documentation can be found here[](), but the API is rather intuitive. Here is some basic examples to give a taste of its basic usage.
 
-#### User
+### User
 
 Obtain information about users.
 
@@ -50,7 +50,7 @@ user.created
 => 2020-06-16 21:59:04 -0400
 ```
 
-#### Guild
+### Guild
 
 Obtain information about guilds.
 
@@ -70,7 +70,7 @@ guild.nsfw?
 => false
 ```
 
-#### Post
+### Post
 
 Obtain information about posts. The API functions for querying comments from a post are not yet implemented on the backend, so you will have to settle for web-scraping with `mechanize`, `nokogiri`, etc. if that information is needed.
 
@@ -94,7 +94,7 @@ post.score
 => 10
 ```
 
-#### Comment
+### Comment
 
 Obtain information about comments. Comments are very similar to posts, but have a few unique methods for obtaining their nesting level, parent post/comment, etc.
 
@@ -113,7 +113,6 @@ comment.post.title
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/ForeverZer0/ruqqus.
-
 
 ## License
 

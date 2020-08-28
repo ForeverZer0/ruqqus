@@ -6,19 +6,19 @@ module Ruqqus
   class Title
 
     ##
-    # @!attribute [r]
+    # @!attribute [r] id
     #   @return [Integer] a unique ID associated with this title.
 
     ##
-    # @!attribute [r]
+    # @!attribute [r] text
     #   @return [String] the text value of the title.
 
     ##
-    # @!attribute [r]
+    # @!attribute [r] color
     #   @return [String] the color used to display the title in HTML format.
 
     ##
-    # @!attribute [r]
+    # @!attribute [r] kind
     #   @return [Integer] an integer determining the "rank" of the title.
 
     ##
