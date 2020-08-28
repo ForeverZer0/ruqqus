@@ -36,7 +36,7 @@ module Ruqqus
   VALID_POST = /[A-Za-z0-9]+/.freeze
 
   ##
-  # Generic error class for exceptions specific to this library.
+  # Generic error class for exceptions specific to the Ruqqus API.
   class Error < StandardError
   end
 

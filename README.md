@@ -42,7 +42,7 @@ At this time, there are only four publicly exposed functions to utilize for acqu
 
 The full documentation can be found [here](https://www.rubydoc.info/gems/ruqqus), but the API is rather intuitive. Here is some basic examples to give a taste of its basic usage.
 
-### User
+### Users
 
 Obtain information about users.
 
@@ -62,7 +62,7 @@ user.created
 #=> 2020-06-16 21:59:04 -0400
 ```
 
-### Guild
+### Guilds
 
 Obtain information about guilds.
 
@@ -82,7 +82,7 @@ guild.nsfw?
 #=> false
 ```
 
-### Post
+### Posts
 
 Obtain information about posts. The API functions for querying comments from a post are not yet implemented on the backend, so you will have to settle for web-scraping with `mechanize`, `nokogiri`, etc. if that information is needed.
 
@@ -106,7 +106,7 @@ post.score
 #=> 10
 ```
 
-### Comment
+### Comments
 
 Obtain information about comments. Comments are very similar to posts, but have a few unique methods for obtaining their nesting level, parent post/comment, etc.
 
