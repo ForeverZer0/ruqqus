@@ -6,9 +6,15 @@
 
 # Ruqqus
 
-This is a Ruby API implementation for [Ruqqus](https://ruqqus.com/), an [open-source](https://github.com/ruqqus/ruqqus) platform for online communities, free of censorship and moderator abuse by design. 
+A Ruby API implementation for [Ruqqus](https://ruqqus.com/), an [open-source](https://github.com/ruqqus/ruqqus) platform for online communities, free of censorship and moderator abuse by design. 
 
 While platform is still in Beta at this time and the public API for it is still quite limited, this gem will be actively updated as it continues to grow and is developed.
+
+[![Build Status](https://travis-ci.org/ForeverZer0/ruqqus.svg?branch=master)](https://travis-ci.org/ForeverZer0/ruqqus)
+[![Gem Version](https://badge.fury.io/rb/ruqqus.svg)](https://badge.fury.io/rb/ruqqus)
+[![Inline docs](http://inch-ci.org/github/ForeverZer0/ruqqus.svg?branch=master)](http://inch-ci.org/github/ForeverZer0/ruqqus)
+[![Maintainability](https://api.codeclimate.com/v1/badges/c39f44a706302e4cd340/maintainability)](https://codeclimate.com/github/ForeverZer0/ruqqus/maintainability)
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -34,7 +40,7 @@ At this time, there are only four publicly exposed functions to utilize for acqu
 * Posts
 * Comments
 
-The full documentation can be found here[](), but the API is rather intuitive. Here is some basic examples to give a taste of its basic usage.
+The full documentation can be found [here](https://www.rubydoc.info/gems/ruqqus), but the API is rather intuitive. Here is some basic examples to give a taste of its basic usage.
 
 ### User
 
@@ -45,15 +51,15 @@ user = Ruqqus.user('foreverzer0')
 
 # Get user's total rep (as well as separate for comments/posts)
 user.total_rep
-=> 22234
+#=> 22234
 
 # Enumerate earned badges
 user.badges.map(&:to_s)
-=> ["Joined Ruqqus during open beta", "Verified Email", "Recruited 10 friends to join Ruqqus"]
+#=> ["Joined Ruqqus during open beta", "Verified Email", "Recruited 10 friends to join Ruqqus"]
 
 # Retrieve a Time object for when user created account
 user.created
-=> 2020-06-16 21:59:04 -0400
+#=> 2020-06-16 21:59:04 -0400
 ```
 
 ### Guild
@@ -65,15 +71,15 @@ guild = Ruqqus.guild('Ruby')
 
 # Query the number of members, description, accent color, etc.
 guild.member_count
-=> 43
+#=> 43
 
 # Links to guild's banner, profile, etc.
 guild.banner_url
-=> "https://i.ruqqus.com/board/ruby/banner-2.png"
+#=> "https://i.ruqqus.com/board/ruby/banner-2.png"
 
-# Check for flags, such as NSFW, NSFW, deletion, banned, "offensive", etc.
+# Check for flags such as NSFW, NSFL, deletion, banned, "offensive", etc.
 guild.nsfw?
-=> false
+#=> false
 ```
 
 ### Post
@@ -88,16 +94,16 @@ post = Ruqqus::Post.from_url('https://ruqqus.com/post/2e0x/made-this-project-in-
 # Obtain relevant information pertaining the guilds on Ruqqus
   
 post.author_name
-=> "Galadriel"
+#=> "Galadriel"
 
 post.title
-=> "Made this project in Ruby On Rails"
+#=> "Made this project in Ruby On Rails"
 
 post.url
-=> "https://ruqqus-metrics.com/"
+#=> "https://ruqqus-metrics.com/"
 
 post.score
-=> 10
+#=> 10
 ```
 
 ### Comment
@@ -109,12 +115,17 @@ comment = Ruqqus.comment('67mt')
 # ...or alternatively
 comment = Ruqqus::Comment.from_url('https://ruqqus.com/post/1wbo/hi-im-josh-roehl-singer-and/67mt')
 
-comment.author.ban_reason
-=> "Spam"
-
 comment.post.title
-=> "Hi. I'm Josh Roehl, singer and songwriter of the hit song \"Endless Summer\". I am hosting an AMA here."
+#=> "Hi. I'm Josh Roehl, singer and songwriter of the hit song \"Endless Summer\". I am hosting an AMA here."
+ 
+comment.body
+#=> "I'm fully aware that I'm not a very good singer. Let's call it half-singing, half-rapping." 
+
+comment.author.ban_reason
+#=> "Spam"
 ```
+
+[Documentation](https://www.rubydoc.info/gems/ruqqus)
 
 ## Contributing
 

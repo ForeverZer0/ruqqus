@@ -16,6 +16,10 @@ module Ruqqus
   HOME = 'https://ruqqus.com'.freeze
 
   ##
+  # The Ruqqus API version.
+  API_VERSION = 1
+
+  ##
   # A regular expression used for username validation.
   VALID_USERNAME = /^[a-zA-Z0-9_]{5,25}$/.freeze
 
