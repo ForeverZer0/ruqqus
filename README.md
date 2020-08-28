@@ -1,8 +1,14 @@
+<p align="center">
+<img src="https://raw.githubusercontent.com/ruqqus/ruqqus/master/ruqqus/assets/images/logo/ruqqus_text_logo.png" width="250"/>
+</p>
+
+<hr>
+
 # Ruqqus
 
 This is a Ruby API implementation for [Ruqqus](https://ruqqus.com/), an [open-source](https://github.com/ruqqus/ruqqus) platform for online communities, free of censorship and moderator abuse by design. 
 
-The platform is still in Beta at this time, and the public API for it is still quite limited, but this gem will be actively updated as it continues to grow and is developed.
+While platform is still in Beta at this time and the public API for it is still quite limited, this gem will be actively updated as it continues to grow and is developed.
 ## Installation
 
 Add this line to your application's Gemfile:

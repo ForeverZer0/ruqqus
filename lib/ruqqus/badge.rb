@@ -17,7 +17,7 @@ module Ruqqus
 
     ##
     # @!attribute [r] created_utc
-    #   @return [Integer] the time the badge was earned in seconds since the Unix epoch, or `0` if not defined.
+    #   @return [Integer?] the time the badge was earned in seconds since the Unix epoch, or `0` if not defined.
 
     ##
     # @!attribute [r] created
@@ -31,32 +31,22 @@ module Ruqqus
       @data = data || raise(ArgumentError, 'data cannot be nil')
     end
 
-    ##
-    # @return [String] the name of the badge.
     def name
       @data[:name]
     end
 
-    ##
-    # @return [String] a brief description of the badge.
     def text
       @data[:text]
     end
 
-    ##
-    # @return [String?] the URL for the badge, or `nil` if none is defined.
     def url
       @data[:url]
     end
 
-    ##
-    # @return [Integer] the time the item was created, in seconds since the Unix epoch, or `nil` if not defined.
     def created_utc
       @data[:created_utc]
     end
 
-    ##
-    # @return [Integer] the time the item was created, in seconds since the Unix epoch, or `nil` if not defined.
     def created
       #noinspection RubyYardReturnMatch
       @data[:created_utc] ? Time.at(@data[:created_utc]) : nil
@@ -65,7 +55,7 @@ module Ruqqus
     ##
     # @return [String] the string representation of the object.
     def to_s
-      @data[:text]
+      @data[:text] || inspect
     end
   end
 end

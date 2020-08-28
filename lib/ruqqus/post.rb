@@ -69,7 +69,7 @@ module Ruqqus
     ##
     # Creates a new {Post} instance from the specified URL.
     #
-    # @param [String] a URL link to a post.
+    # @param url [String] a URL link to a post.
     #
     # @return [Post] the {Post} instance the URL links to.
     #

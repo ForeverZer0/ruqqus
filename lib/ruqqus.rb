@@ -39,7 +39,7 @@ module Ruqqus
   ##
   # Retrieves the {User} with the specified username.
   #
-  # @param [String] the username of the Ruqqus account to retrieve.
+  # @param username [String] the username of the Ruqqus account to retrieve.
   #
   # @return [User] the requested {User}.
   #
@@ -54,7 +54,7 @@ module Ruqqus
   ##
   # Retrieves the {Guild} with the specified name.
   #
-  # @param [String] the name of the Ruqqus guild to retrieve.
+  # @param guild_name [String] the name of the Ruqqus guild to retrieve.
   #
   # @return [Guild] the requested {Guild}.
   #
@@ -69,7 +69,7 @@ module Ruqqus
   ##
   # Retrieves the {Post} with the specified name.
   #
-  # @param [String] the ID of the post to retrieve.
+  # @param post_id [String] the ID of the post to retrieve.
   #
   # @return [Post] the requested {Post}.
   #
@@ -84,7 +84,7 @@ module Ruqqus
   ##
   # Retrieves the {Comment} with the specified name.
   #
-  # @param [String] the ID of the comment to retrieve.
+  # @param comment_id [String] the ID of the comment to retrieve.
   #
   # @return [Comment] the requested {Comment}.
   #
@@ -97,11 +97,11 @@ module Ruqqus
   end
 
   ##
-  # @private
+  # @api private
   # Calls the GET method at the specified API route, and returns the deserializes JSON response as an object.
   #
   # @param route [String] the full API route to the GET method.
-  # @param klass [Class] a {Class} instance that is inherited from {ItemBase}.
+  # @param klass [Class] a Class instance that is inherited from {ItemBase}.
   #
   # @return [Object] an instance of the specified class.
   #

@@ -45,7 +45,7 @@ module Ruqqus
     ##
     # Creates a new {Comment} instance from the specified URL.
     #
-    # @param [String] a URL link to a comment.
+    # @param url [String] a URL link to a comment.
     #
     # @return [Comment] the {Comment} instance the URL links to.
     #
