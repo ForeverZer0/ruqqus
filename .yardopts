@@ -1,0 +1,6 @@
+--readme README.md
+--title 'Ruqqus'
+--charset utf-8
+--markup markdown
+--protected
+lib/**/*.rb

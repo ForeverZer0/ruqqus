@@ -1,3 +1,6 @@
 module Ruqqus
-  VERSION = "0.1.0"
+
+  ##
+  # The Ruqqus gem version.
+  VERSION = '0.1.0'.freeze
 end
