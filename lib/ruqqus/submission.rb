@@ -118,12 +118,6 @@ module Ruqqus
     end
 
     ##
-    # @return [String] a unique ID associated with this item.
-    def id
-      @data[:id]
-    end
-
-    ##
     # @return [String] the name/title of this item.
     def title
       @data[:title]
