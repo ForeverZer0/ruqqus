@@ -1,4 +1,3 @@
-require_relative 'item_base'
 
 module Ruqqus
 
@@ -11,13 +10,6 @@ module Ruqqus
     # @return [String?] the name of the creator of the item, or `nil` if deleted account.
     def author_name
       @data[:author]
-    end
-
-    ##
-    # @return [String] the creator of the item, or `nil` if deleted account.
-    def author
-      #noinspection RubyYardReturnMatch
-      @author ||= author_name ? Ruqqus.user(author_name) : nil
     end
 
     ##
@@ -108,13 +100,6 @@ module Ruqqus
     # @return [String] the name of the guild this item is contained within.
     def guild_name
       @data[:guild_name]
-    end
-
-    ##
-    # @return [Guild?] the guild this item is contained within.
-    def guild
-      #noinspection RubyYardReturnMatch
-      @guild ||= guild_name ? Ruqqus.guild(guild_name) : nil
     end
 
     ##

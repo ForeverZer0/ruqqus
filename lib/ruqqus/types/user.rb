@@ -1,6 +1,3 @@
-require_relative 'badge'
-require_relative 'title'
-require_relative 'item_base'
 
 module Ruqqus
 

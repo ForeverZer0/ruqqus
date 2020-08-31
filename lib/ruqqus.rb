@@ -1,10 +1,9 @@
 require 'rest-client'
+require 'json'
 
-require_relative 'ruqqus/item_base'
-require_relative 'ruqqus/comment'
-require_relative 'ruqqus/guild'
-require_relative 'ruqqus/post'
-require_relative 'ruqqus/user'
+require_relative 'ruqqus/routes'
+require_relative 'ruqqus/client'
+require_relative 'ruqqus/types'
 require_relative 'ruqqus/version'
 
 ##
@@ -14,10 +13,6 @@ module Ruqqus
   ##
   # The base Ruqqus URL.
   HOME = 'https://ruqqus.com'.freeze
-
-  ##
-  # The Ruqqus API version.
-  API_VERSION = 1
 
   ##
   # A regular expression used for username validation.
@@ -49,10 +44,10 @@ module Ruqqus
   #
   # @raise [ArgumentError] when `username` is `nil` or value does match the {VALID_USERNAME} regular expression.
   # @raise [Error] thrown when user account does not exist.
-  def self.user(username)
+  def self.user_info(username)
     raise(ArgumentError, 'username cannot be nil') unless username
     raise(ArgumentError, 'invalid username') unless VALID_USERNAME.match?(username)
-    api_get("#{HOME}/api/v1/user/#{username}", User)
+    api_get("#{Routes::USER_INFO}#{username}", User)
   end
 
   ##
@@ -64,10 +59,10 @@ module Ruqqus
   #
   # @raise [ArgumentError] when `guild_name` is `nil` or value does match the {VALID_GUILD} regular expression.
   # @raise [Error] thrown when guild does not exist.
-  def self.guild(guild_name)
+  def self.guild_info(guild_name)
     raise(ArgumentError, 'guild_name cannot be nil') unless guild_name
     raise(ArgumentError, 'invalid guild name') unless VALID_POST.match?(guild_name)
-    api_get("#{HOME}/api/v1/guild/#{guild_name}", Guild)
+    api_get("#{Routes::GUILD_INFO}#{guild_name}", Guild)
   end
 
   ##
@@ -79,10 +74,10 @@ module Ruqqus
   #
   # @raise [ArgumentError] when `post_id` is `nil` or value does match the {VALID_POST} regular expression.
   # @raise [Error] thrown when a post with the specified ID does not exist.
-  def self.post(post_id)
+  def self.post_info(post_id)
     raise(ArgumentError, 'post_id cannot be nil') unless post_id
     raise(ArgumentError, 'invalid post ID') unless VALID_POST.match?(post_id)
-    api_get("#{HOME}/api/v1/post/#{post_id}", Post)
+    api_get("#{Routes::POST_INFO}#{post_id}", Post)
   end
 
   ##
@@ -94,10 +89,10 @@ module Ruqqus
   #
   # @raise [ArgumentError] when `comment_id` is `nil` or value does match the {VALID_POST} regular expression.
   # @raise [Error] when a comment with the specified ID does not exist.
-  def self.comment(comment_id)
+  def self.comment_info(comment_id)
     raise(ArgumentError, 'comment_id cannot be nil') unless comment_id
     raise(ArgumentError, 'invalid comment ID') unless VALID_POST.match?(comment_id)
-    api_get("#{HOME}/api/v1/comment/#{comment_id}", Comment)
+    api_get("#{Routes::COMMENT_INFO}#{comment_id}", Comment)
   end
 
   ##
@@ -105,21 +100,20 @@ module Ruqqus
   # Calls the GET method at the specified API route, and returns the deserializes JSON response as an object.
   #
   # @param route [String] the full API route to the GET method.
-  # @param klass [Class] a Class instance that is inherited from {ItemBase}.
+  # @param klass [Class] a Class instance that is inherited from {ItemBase}, or `nil` to return as a JSON hash.
   #
-  # @return [Object] an instance of the specified class.
+  # @return [Hash,Object] an instance of the specified class.
   #
   # @raise [Error] thrown when the requested item is not found.
   # @raise [ArgumentError] when the specified class is not inherited from {ItemBase}.
-  def self.api_get(route, klass)
+  def self.api_get(route, klass = nil)
     raise(ArgumentError, 'klass is not a child class of Ruqqus::ItemBase') unless klass < ItemBase
     #noinspection RubyResolve
     begin
-      response = RestClient.get(route)
-      klass.from_json(response.body)
+      body = RestClient.get(route).body
+      klass && klass.respond_to?(:from_json) ? klass.from_json(body) : JSON.parse(body, symbolize_names: true)
     rescue RestClient::BadRequest
       raise(Error, 'invalid search parameters, object with specified criteria does not exist')
     end
   end
 end
-

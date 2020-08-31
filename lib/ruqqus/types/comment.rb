@@ -1,4 +1,3 @@
-require_relative 'submission'
 
 module Ruqqus
 
@@ -8,7 +7,7 @@ module Ruqqus
 
     ##
     # Captures the ID of a comment from a Ruqqus URL
-    COMMENT_REGEX = /ruqqus.com\/post\/.+\/.+\/([A-Za-z0-9]+)\/?/.freeze
+    COMMENT_REGEX = /\/post\/.+\/.+\/([A-Za-z0-9]+)\/?/.freeze
 
     ##
     # @return [Integer] the level of "nesting" in the comment tree, starting at `1` when in direct reply to the post.
@@ -23,23 +22,21 @@ module Ruqqus
     end
 
     ##
-    # @return [Post,Comment] the parent for this content.
-    def parent
-      #noinspection RubyYardReturnMatch
-      @parent ||= level > 1 ? Ruqqus.comment(parent_id) : Ruqqus.post(parent_id)
+    # @return [Boolean] `true` if {#parent_id} refers to a comment, otherwise `false` if a post.
+    def parent_comment?
+      level > 1
+    end
+
+    ##
+    # @return [Boolean] `true` if {#parent_id} refers to a post, otherwise `false` if a comment.
+    def parent_post?
+      level == 1
     end
 
     ##
     # @return [String] the ID of the post this comment belongs to.
     def post_id
       @data[:post]
-    end
-
-    ##
-    # @return [Post] the post this comment belongs to.
-    def post
-      #noinspection RubyYardReturnMatch
-      Ruqqus.post(post_id)
     end
 
     ##
@@ -55,7 +52,7 @@ module Ruqqus
       raise(ArgumentError, 'url cannot be nil') unless url
       match = COMMENT_REGEX.match(url)
       raise(ArgumentError, 'invalid URL for a comment') unless match
-      Ruqqus.comment($1)
+      Ruqqus.comment_info($1)
     end
   end
 end

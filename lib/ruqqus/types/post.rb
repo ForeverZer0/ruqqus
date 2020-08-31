@@ -1,4 +1,3 @@
-require_relative 'submission'
 
 module Ruqqus
 
@@ -8,7 +7,7 @@ module Ruqqus
 
     ##
     # Captures the ID of a post from a Ruqqus URL
-    POST_REGEX = /ruqqus.com\/post\/([A-Za-z0-9]+)\/?.*/.freeze
+    POST_REGEX = /\/post\/([A-Za-z0-9]+)\/?.*/.freeze
 
     ##
     # @return [Title?] the title assigned to the author, or `nil` if none is defined.
@@ -39,12 +38,6 @@ module Ruqqus
     # @return [String] the name of the guild this post was originally posted in.
     def original_guild_name
       @data[:original_guild_name]
-    end
-
-    ##
-    # @return [Guild] the guild this post was originally posted in.
-    def original_guild
-      @original_guild ||= Ruqqus.guild(original_guild_name)
     end
 
     ##
@@ -79,7 +72,7 @@ module Ruqqus
       raise(ArgumentError, 'url cannot be nil') unless url
       match = POST_REGEX.match(url)
       raise(ArgumentError, 'invalid URL for a post') unless match
-      Ruqqus.post($1)
+      Ruqqus.post_info($1)
     end
   end
 end

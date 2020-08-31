@@ -47,7 +47,7 @@ The full documentation can be found [here](https://www.rubydoc.info/gems/ruqqus)
 Obtain information about users.
 
 ```ruby
-user = Ruqqus.user('foreverzer0')
+user = Ruqqus.user_info('foreverzer0')
 
 # Get user's total rep (as well as separate for comments/posts)
 user.total_rep
@@ -67,7 +67,7 @@ user.created
 Obtain information about guilds.
 
 ```ruby
-guild = Ruqqus.guild('Ruby')
+guild = Ruqqus..guild_info('Ruby')
 
 # Query the number of members, description, accent color, etc.
 guild.member_count
@@ -87,7 +87,7 @@ guild.nsfw?
 Obtain information about posts. The API functions for querying comments from a post are not yet implemented on the backend, so you will have to settle for web-scraping with `mechanize`, `nokogiri`, etc. if that information is needed.
 
 ```ruby
-post = Ruqqus.post('2e0x')
+post = Ruqqus.post_info('2e0x')
 # ...or alternatively
 post = Ruqqus::Post.from_url('https://ruqqus.com/post/2e0x/made-this-project-in-ruby-on')
 
@@ -111,7 +111,7 @@ post.score
 Obtain information about comments. Comments are very similar to posts, but have a few unique methods for obtaining their nesting level, parent post/comment, etc.
 
 ```ruby
-comment = Ruqqus.comment('67mt')
+comment = Ruqqus.comment_info('67mt')
 # ...or alternatively
 comment = Ruqqus::Comment.from_url('https://ruqqus.com/post/1wbo/hi-im-josh-roehl-singer-and/67mt')
 
