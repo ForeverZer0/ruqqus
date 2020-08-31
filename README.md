@@ -6,7 +6,8 @@
 
 # Ruqqus
 
-A Ruby API implementation for [Ruqqus](https://ruqqus.com/), an [open-source](https://github.com/ruqqus/ruqqus) platform for online communities, free of censorship and moderator abuse by design. 
+A Ruby API implementation for [Ruqqus](https://ruqqus.com/), an [open-source](https://github.com/ruqqus/ruqqus) platform for online communities, free of censorship and moderator abuse by design. [Sign up](https://ruqqus.com/signup?ref=foreverzer0
+) if you haven't yet!
 
 While platform is still in Beta at this time and the public API for it is still quite limited, this gem will be actively updated as it continues to grow and is developed.
 
