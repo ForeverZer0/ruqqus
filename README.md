@@ -115,13 +115,13 @@ comment = Ruqqus.comment_info('67mt')
 # ...or alternatively
 comment = Ruqqus::Comment.from_url('https://ruqqus.com/post/1wbo/hi-im-josh-roehl-singer-and/67mt')
 
-comment.post.title
+Ruqqus.post_info(comment.post).title
 #=> "Hi. I'm Josh Roehl, singer and songwriter of the hit song \"Endless Summer\". I am hosting an AMA here."
  
 comment.body
 #=> "I'm fully aware that I'm not a very good singer. Let's call it half-singing, half-rapping." 
 
-comment.author.ban_reason
+Ruqqus.user_info(comment.author_name).ban_reason
 #=> "Spam"
 ```
 
