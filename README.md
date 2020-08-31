@@ -15,6 +15,10 @@ While platform is still in Beta at this time and the public API for it is still 
 [![Inline docs](http://inch-ci.org/github/ForeverZer0/ruqqus.svg?branch=master)](http://inch-ci.org/github/ForeverZer0/ruqqus)
 [![Maintainability](https://api.codeclimate.com/v1/badges/c39f44a706302e4cd340/maintainability)](https://codeclimate.com/github/ForeverZer0/ruqqus/maintainability)
 
+### Important!
+
+Keep in mind that the website is not yet in release status, and backend development and downtime can be expected. This gem is not yet production-ready, and will not be until following the website reaching release status. If you are receiving `RestClient::InternalServerError` exceptions, it is due to backend development, not this project, and unfortunately nothing can be done at this time.
+
 ## Installation
 
 Add this line to your application's Gemfile:
