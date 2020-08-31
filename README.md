@@ -67,7 +67,7 @@ user.created
 Obtain information about guilds.
 
 ```ruby
-guild = Ruqqus..guild_info('Ruby')
+guild = Ruqqus.guild_info('Ruby')
 
 # Query the number of members, description, accent color, etc.
 guild.member_count
