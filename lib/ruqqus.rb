@@ -61,7 +61,7 @@ module Ruqqus
   # @raise [Error] thrown when guild does not exist.
   def self.guild_info(guild_name)
     raise(ArgumentError, 'guild_name cannot be nil') unless guild_name
-    raise(ArgumentError, 'invalid guild name') unless VALID_POST.match?(guild_name)
+    raise(ArgumentError, 'invalid guild name') unless VALID_GUILD.match?(guild_name)
     api_get("#{Routes::GUILD_INFO}#{guild_name}", Guild)
   end
 
