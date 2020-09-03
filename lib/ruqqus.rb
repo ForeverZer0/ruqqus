@@ -69,4 +69,32 @@ module Ruqqus
     json = JSON.parse(response.body, symbolize_names: true)
     json[:data][:link]
   end
+
+  ##
+  # Checks if the specified guild name is available to be created.
+  #
+  # @param guild_name [String] the name of a guild to query.
+  #
+  # @return [Boolean] `true` is name is available, otherwise `false` if it has been reserved or is in use.
+  def self.guild_available?(guild_name)
+    available?(guild_name, VALID_GUILD, "#{Routes::GUILD_AVAILABLE}#{name}")
+  end
+
+  ##
+  # Checks if the specified username is available to be created.
+  #
+  # @param username [String] the name of a user to query.
+  #
+  # @return [Boolean] `true` is name is available, otherwise `false` if it has been reserved or is in use.
+  def self.username_available?(username)
+    available?(username, VALID_USERNAME, "#{Routes::USERNAME_AVAILABLE}#{name}")
+  end
+
+  private
+
+  def self.available?(name, regex, route)
+    return false unless name && regex.match?(name)
+    json = JSON.parse(RestClient.get(route))
+    !!json[name]
+  end
 end

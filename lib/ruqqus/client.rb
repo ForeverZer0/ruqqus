@@ -202,27 +202,6 @@ module Ruqqus
     end
 
     ##
-    # Checks if the specified guild or user name is available to be created.
-    #
-    # @param name [String] the name of a guild or username to query.
-    # @param type [Symbol] the type of entity to query, either `:username` or `:guild`.
-    #
-    # @return [Boolean] `true` is name is available, otherwise `false` if it has been reserved or is in use.
-    def available?(name, type: :username)
-      case type
-      when :username
-        return false unless VALID_USERNAME.match?(username)
-        route = "#{Routes::USERNAME_AVAILABLE}#{name}"
-      when :guild
-        return false unless VALID_GUILD.match?(guild_name)
-        route = "#{Routes::GUILD_AVAILABLE}#{name}"
-      else return false
-      end
-      json = http_get(route)
-      !!json[name.to_sym] rescue false
-    end
-
-    ##
     # Retrieves an array of {Post} objects associated with a user.
     #
     # @param user [User,String] a {User} instance or the name of the account to query.
