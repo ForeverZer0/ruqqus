@@ -45,10 +45,13 @@ module Ruqqus
     ##
     # Loads the object from a JSON-formatted string.
     #
+    # @param json [String,Hash] a JSON string representing the object.
+    #
     # @return [Object] the loaded object.
     def self.from_json(json)
       obj = allocate
-      obj.instance_variable_set(:@data, JSON.parse(json, symbolize_names: true))
+      data = json.is_a?(Hash) ? json : JSON.parse(json, symbolize_names: true)
+      obj.instance_variable_set(:@data, data)
       obj
     end
 

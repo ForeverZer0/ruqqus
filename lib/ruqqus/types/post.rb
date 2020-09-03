@@ -6,10 +6,6 @@ module Ruqqus
   class Post < Submission
 
     ##
-    # Captures the ID of a post from a Ruqqus URL
-    POST_REGEX = /\/post\/([A-Za-z0-9]+)\/?.*/.freeze
-
-    ##
     # @return [Title?] the title assigned to the author, or `nil` if none is defined.
     def author_title
       #noinspection RubyYardReturnMatch
@@ -57,22 +53,6 @@ module Ruqqus
     # @return [String] the string representation of the object.
     def to_s
       @data[:title] || inspect
-    end
-
-    ##
-    # Creates a new {Post} instance from the specified URL.
-    #
-    # @param url [String] a URL link to a post.
-    #
-    # @return [Post] the {Post} instance the URL links to.
-    #
-    # @raise [ArgumentError] then `url` is `nil`.
-    # @raise [Ruqqus::Error] when the link is not for a Ruqqus post.
-    def self.from_url(url)
-      raise(ArgumentError, 'url cannot be nil') unless url
-      match = POST_REGEX.match(url)
-      raise(ArgumentError, 'invalid URL for a post') unless match
-      Ruqqus.post_info($1)
     end
   end
 end

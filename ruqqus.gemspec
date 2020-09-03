@@ -35,6 +35,8 @@ Gem::Specification.new do |spec|
   # Dependencies
   spec.add_runtime_dependency('rest-client', '~> 2.1')
 
+  spec.add_development_dependency('mechanize', '~> 2.7')
   spec.add_development_dependency('rake', '~> 13.0')
+  spec.add_development_dependency('tty-prompt', '~> 0.22')
   spec.add_development_dependency('yard', '~> 0.9')
 end
