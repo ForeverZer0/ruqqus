@@ -48,11 +48,5 @@ module Ruqqus
       #noinspection RubyYardReturnMatch
       @data[:url]&.empty? ? nil : @data[:url]
     end
-
-    ##
-    # @return [String] the string representation of the object.
-    def to_s
-      @data[:title] || inspect
-    end
   end
 end

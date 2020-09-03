@@ -99,18 +99,8 @@ module Ruqqus
     #
     # @note This method is restricted to 6/minute, and will fail when that limit is exceeded.
     def comment_create(body, post, comment = nil)
-
-      if post.is_a?(Post)
-        pid = post.id
-        parent = post.full_name
-      else
-        pid = post.sub(/^t2_/, '')
-        parent = 't3_' + pid
-      end
-
-      if comment
-        parent = comment.is_a?(Comment) ? comment.full_name : 't3_' + comment.sub(/^t3_/, '')
-      end
+      pid = post.to_s
+      parent = comment ? 't3_' + comment.to_s : 't2_' + pid
       comment_submit(parent, pid, body)
     end
 
@@ -185,14 +175,11 @@ module Ruqqus
     #
     # @return [Array<Post>] an array containing the posts within the guild.
     def guild_posts(guild)
-      raise(ArgumentError, 'guild cannot be nil') if guild.nil?
       name = guild.is_a?(Guild) ? guild.name : guild.to_s
       raise(Ruqqus::Error, 'invalid guild name') unless Ruqqus::VALID_GUILD.match?(name)
 
       posts = http_get("#{Routes::GUILD}#{name}/listing")
-      raise(Ruqqus::Error, "failed to get posts for guild #{name}") if posts[:error]
-
-      posts[:data].map { |hash| Post.from_json(hash) }
+      posts[:data]&.map { |hash| Post.from_json(hash) } rescue Array.new
     end
 
     ##

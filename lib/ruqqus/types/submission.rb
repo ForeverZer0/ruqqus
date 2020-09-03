@@ -107,5 +107,11 @@ module Ruqqus
     def title
       @data[:title]
     end
+
+    ##
+    # @return [String] the string representation of the object.
+    def to_s
+      @data[:id]
+    end
   end
 end
