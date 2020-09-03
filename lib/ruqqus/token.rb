@@ -78,7 +78,6 @@ module Ruqqus
       data = JSON.parse(resp.body, symbolize_names: true)
       raise(Ruqqus::Error, 'failed to refresh authentication token') unless resp.code == 200 || data[:oauth_error]
       @data.merge!(data)
-
       @refreshed&.call(self)
     end
 
@@ -105,6 +104,8 @@ module Ruqqus
       expires <= Time.now
     end
 
+    ##
+    # @return [String] the object as a JSON-formatted string.
     def to_json
       { client_id: @client_id, client_secret: @client_secret, data: @data }.to_json
     end
@@ -143,6 +144,5 @@ module Ruqqus
       token.instance_variable_set(:@data, data[:data])
       token
     end
-
   end
 end

@@ -11,6 +11,9 @@ Documentation for library API changes.
     * Implementing querying for reserved usernames/guilds
     * Implemented retrieving posts of guilds
     * Implemented retrieving posts and comments of users
+    * Implemented voting on posts and comments as a user
+    * Implemented enumerating all guilds
+    * Implemented enumerating through all posts
 * Refactored `Ruqqus.user_info` to `Ruqqus::Client#user`
 * Refactored `Ruqqus.guild_info` to `Ruqqus::Client#guild`
 * Refactored `Ruqqus.post_info` to `Ruqqus::Client#post`

@@ -92,9 +92,31 @@ module Ruqqus
 
   private
 
+  ##
+  # Checks if the specified guild or user name is available to be created.
+  #
+  # @param name [String] the name of a guild or username to query.
+  # @param regex [Regex] a validation regex for the name.
+  # @param route [String] the API endpoint to invoke.
+  #
+  # @return [Boolean] `true` is name is available, otherwise `false` if it has been reserved or is in use.
   def self.available?(name, regex, route)
     return false unless name && regex.match?(name)
     json = JSON.parse(RestClient.get(route))
     !!json[name]
   end
 end
+
+token = Ruqqus::Token.load_json('../token.json')
+token.on_refresh { |t| t.save_json('../token.json') }
+client = Ruqqus::Client.new(token)
+
+# https://ruqqus.com/post//bodycam-footage-from-police-shooting-of/
+
+
+p client.post_create('test', 'Test Post', 'Some text')
+
+# https://ruqqus.com/post/2xtm/bodycam-footage-from-police-shooting-of
+# https://ruqqus.com/post/2xtm/bodycam-footage-from-police-shooting-of/a7dc
+# @app.route("/api/v1/embed/comment/<cid>", methods=["GET"])
+# @app.route("/api/v1/embed/post/<pid>/comment/<cid>", methods=["GET"])

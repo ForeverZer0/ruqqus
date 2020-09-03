@@ -1,0 +1,98 @@
+#!/usr/bin/env ruby
+
+require 'mechanize'
+require 'tty-prompt'
+
+#noinspection RubyResolve
+class RuqqusOAuth
+
+  def initialize
+    prompt = TTY::Prompt.new
+    agent = Mechanize.new
+
+    prompt.warn('After inputting your client information and credentials of user')
+    prompt.warn('to authorize, and a code for token creation will be generated.')
+    puts
+    url = authorization_url(prompt)
+    login(agent, prompt)
+    prompt.say('Generating code...')
+    puts
+    code = generate_code(url, agent)
+    STDOUT << 'CODE: '
+    prompt.ok(code)
+  end
+
+  def authorization_url(prompt)
+    url = 'https://ruqqus.com/oauth/authorize'
+    url << "?client_id=#{ask_client_id(prompt)}"
+    url << "&redirect_uri=#{ask_client_redirect(prompt)}"
+    url << "&scope=#{ask_scopes(prompt)}"
+    url << "&state=#{SecureRandom.uuid.gsub('-', '')}"
+    url << '&permanent=true'
+    url
+  end
+
+  def generate_code(url, agent)
+    agent.get(url) do |page|
+      page.form_with(action: '/oauth/authorize').submit
+      /.*\?code=([a-zA-Z0-9_-]+)&?/.match(agent.history.last.uri.to_s)
+      return $1
+    end
+  end
+
+  def ask_client_id(prompt)
+    prompt.ask('Client ID: ') { |q| q.validate(/^[A-Fa-f0-9]+$/, "Invalid client ID") }
+  end
+
+  def ask_client_secret(prompt)
+    prompt.ask('Client Secret: ') { |q| q.validate(/^[A-Fa-f0-9]+$/, "Invalid client secret") }
+  end
+
+  def ask_client_redirect(prompt)
+    prompt.ask('Redirect URI: ', default: 'https://www.google.com') do |q|
+      proc = Proc.new { |v| URI.regexp =~ v && URI(v).scheme == 'https' }
+      q.validate(proc, 'Invalid HTTPS URI/scheme (must be HTTPS, not localhost)')
+    end
+  end
+
+  def ask_scopes(prompt)
+    msg = 'Select scopes the client is authorized to perform:'
+    choices = %i(identity create read update delete vote guildmaster)
+    scopes = prompt.multi_select(msg, choices, per_page: choices.size) do |q|
+      defaults = (1..choices.size).to_a
+      q.default(*defaults)
+    end
+    scopes.join(',')
+  end
+
+  def login(agent, prompt)
+    agent.get('https://ruqqus.com/login') do |page|
+      page.form_with(action: '/login') do |form|
+        form['username'] = prompt.ask('Username: ') do |q|
+          q.validate(/^[a-zA-Z0-9_]{5,25}$/, 'Invalid username')
+        end
+        form['password'] = prompt.mask("Password: ") do |q|
+          q.validate(/^.{8,100}$/, 'Invalid password')
+        end
+        puts 'Logging into Ruqqus...'
+      end.submit
+    end
+  end
+end
+
+begin
+  RuqqusOAuth.new
+rescue Interrupt
+  puts
+  # Ignored
+end
+
+
+
+
+
+
+
+
+
+

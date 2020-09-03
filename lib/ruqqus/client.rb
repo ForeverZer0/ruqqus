@@ -20,6 +20,14 @@ module Ruqqus
     DEFAULT_HEADERS = { 'User-Agent': USER_AGENT, 'Accept': 'application/json', 'Content-Type': 'application/json' }.freeze
 
     ##
+    # @return [Token] the OAuth2 token that grants the client authentication.
+    attr_reader :token
+
+    ##
+    # @!attribute [r] identity
+    #   @return [User] the authenticated user this client is performing actions as.
+
+    ##
     # Creates a new instance of the {Client} class.
     #
     # @param token [Token] a valid access token to authorize the client.
@@ -27,6 +35,8 @@ module Ruqqus
       @token = token || raise(ArgumentError, 'token cannot be nil')
       @session = nil
     end
+
+    # @!group Object Querying
 
     ##
     # Retrieves the {User} with the specified username.
@@ -85,8 +95,12 @@ module Ruqqus
     def comment(comment_id)
       raise(ArgumentError, 'comment_id cannot be nil') unless comment_id
       raise(ArgumentError, 'invalid comment ID') unless VALID_POST.match?(comment_id)
-      Comment.from_json("#{Routes::COMMENT}#{comment_id}")
+      Comment.from_json(http_get("#{Routes::COMMENT}#{comment_id}"))
     end
+
+    # @!endgroup Object Querying
+
+    # @!group Commenting
 
     ##
     # Submits a new comment on a post.
@@ -95,7 +109,7 @@ module Ruqqus
     # @param post [Post,String] a {Post} instance or the unique ID of a post.
     # @param comment [Comment,String] a {Comment} with the post to reply under, or `nil` to reply directly to the post.
     #
-    # @return [Comment,NilClass] the comment that was submitted, or `nil` if an error occurred.
+    # @return [Comment?] the comment that was submitted, or `nil` if an error occurred.
     #
     # @note This method is restricted to 6/minute, and will fail when that limit is exceeded.
     def comment_create(body, post, comment = nil)
@@ -107,13 +121,13 @@ module Ruqqus
     ##
     # Submits a new comment on a post.
     #
-    # @param comment [Comment,String] a {Comment} instance or the unique ID of a comment.
     # @param body [String] the text content of the comment (supports Markdown)
+    # @param comment [Comment,String] a {Comment} instance or the unique ID of a comment.
     #
-    # @return [Comment,NilClass] the comment that was submitted, or `nil` if an error occurred.
+    # @return [Comment?] the comment that was submitted, or `nil` if an error occurred.
     #
     # @note This method is restricted to 6/minute, and will fail when that limit is exceeded.
-    def comment_reply(comment, body)
+    def comment_reply(body, comment)
       if comment.is_a?(Comment)
         comment_submit(comment.full_name, comment.post_id, body)
       else
@@ -134,16 +148,23 @@ module Ruqqus
       http_post(url).empty? rescue false
     end
 
+    # @!endgroup Commenting
+
+    # @!group Posting
+
     ##
     # Creates a new post on Ruqqus as the current user.
     #
     # @param guild [Guild,String] a {Guild} instance or the name of the guild to post to.
     # @param title [String] the title of the post to create.
-    # @param body [String,NilClass] the text body of the post, which can be `nil` if supplying URL or image upload.
+    # @param body [String?] the text body of the post, which can be `nil` if supplying URL or image upload.
     # @param opts [Hash] The options hash to specify a link or image to upload.
+    # @option opts [String] :image (nil) the path to an image file to upload.
+    # @option opts [String] :url (nil) a URL to share with the post.
+    # @option opts [String] :imgur_client (nil) an Imgur client ID to automatically share images via Imgur instead of
+    #   direct upload.
     #
-    #
-    # @return [Post,NilClass] the newly created {Post} instance, or `nil` if an error occurred.
+    # @return [Post?] the newly created {Post} instance, or `nil` if an error occurred.
     # @note This method is restricted to 6/minute, and will fail when that limit is exceeded.
     def post_create(guild, title, body = nil, **opts)
       name = guild.is_a?(Guild) ? guild.name : guild.strip.sub(/^\+/, '')
@@ -163,126 +184,179 @@ module Ruqqus
       end
 
       if [params[:body], params[:image], params[:url]].none?
-        raise(ArgumentError, 'text body cannot be nil or empty without URL or image') if body.nil? || body&.empty?
+        raise(ArgumentError, 'text body cannot be nil or empty without URL or image') if body.nil? || body.empty?
       end
       Post.from_json(http_post(Routes::SUBMIT, params)) rescue nil
     end
 
+    # @!endgroup Posting
+
+    # @!group Voting
+
     ##
-    # Retrieves the posts of the specified guild.
+    # Places a vote on a post.
+    #
+    # @param post [Post,String] a {Post} instance, or the unique ID of a post.
+    # @param value [Integer] the vote value to place, either `-1`, `0`, or `1`.
+    #
+    # @return [Boolean] `true` if vote was placed successfully, otherwise `false`.
+    def vote_post(post, value = 1)
+      submit_vote(post.to_s, value, 'https://ruqqus.com/api/v1/vote/post/')
+    end
+
+    ##
+    # Places a vote on a comment.
+    #
+    # @param comment [Comment,String] a {Comment} instance, or the unique ID of a comment.
+    # @param value [Integer] the vote value to place, either `-1`, `0`, or `1`.
+    #
+    # @return [Boolean] `true` if vote was placed successfully, otherwise `false`.
+    def vote_comment(comment, value = 1)
+      submit_vote(comment.to_s, value, 'https://ruqqus.com/api/v1/vote/comment/')
+    end
+
+    # @!endgroup Voting
+
+    # @!group Object Enumeration
+
+    ##
+    # Enumerates through each post of a user, yielding each to a block.
+    #
+    # @param user [User,String] a {User} instance or the name of the account to query.
+    # @yieldparam post [Post] yields a {Post} to the block.
+    # @return [self]
+    # @raise [LocalJumpError] when a block is not supplied to the method.
+    # @note An API invocation is required for every 25 items that are yielded to the block, so observing brief pauses at
+    #   these intervals is an expected behavior.
+    def each_user_post(user)
+      raise(LocalJumpError, 'block required') unless block_given?
+      each_submission(user, Post, 'listing') { |obj| yield obj }
+    end
+
+    ##
+    # Enumerates through each comment of a user, yielding each to a block.
+    #
+    # @param user [User,String] a {User} instance or the name of the account to query.
+    # @yieldparam comment [Comment] yields a {Comment} to the block.
+    # @return [self]
+    # @raise [LocalJumpError] when a block is not supplied to the method.
+    # @note An API invocation is required for every 25 items that are yielded to the block, so observing brief pauses at
+    #   these intervals is an expected behavior.
+    def each_user_comment(user)
+      raise(LocalJumpError, 'block required') unless block_given?
+      each_submission(user, Comment, 'comments') { |obj| yield obj }
+    end
+
+    ##
+    # Enumerates through each post in the specified guild, and yields each one to a block.
+    #
+    # @param sort [Symbol] a symbol to determine the sorting method, valid values include `:trending`, `:subs`, `:new`.
+    # @yieldparam guild [Guild] yields a {Guild} to the block.
+    # @return [self]
+    # @raise [LocalJumpError] when a block is not supplied to the method.
+    # @note An API invocation is required for every 25 items that are yielded to the block, so observing brief pauses at
+    #   these intervals is an expected behavior.
+    def each_guild(sort = :subs)
+      raise(LocalJumpError, 'block required') unless block_given?
+
+      page = 1
+      loop do
+        params = { sort: sort, page: page }
+        json = http_get(Routes::GUILDS, headers(params: params))
+        break if json[:error]
+        json[:data].each { |hash| yield Guild.from_json(hash) }
+        break if json[:data].size < 25
+        page += 1
+      end
+      self
+    end
+
+    ##
+    # Enumerates through each post in a guild, yielding each to a block.
     #
     # @param guild [Guild,String] a {Guild} instance, or the name of the guild to query.
+    # @param opts [Hash] the options hash.
+    # @option opts [Symbol] :sort (:new) Valid: `:new`, `:top`, `:hot`, `:activity`, `:disputed`
+    # @option opts [Symbol] :filter (:all) Valid: `:all`, `:day`, `:week`, `:month`, `:year`
     #
-    # @return [Array<Post>] an array containing the posts within the guild.
-    def guild_posts(guild)
-      name = guild.is_a?(Guild) ? guild.name : guild.to_s
-      raise(Ruqqus::Error, 'invalid guild name') unless Ruqqus::VALID_GUILD.match?(name)
+    # @yieldparam post [Post] yields a {Post} to the block.
+    # @return [self]
+    # @raise [LocalJumpError] when a block is not supplied to the method.
+    # @note An API invocation is required for every 25 items that are yielded to the block, so observing brief pauses at
+    #   these intervals is an expected behavior.
+    def each_guild_post(guild, **opts)
+      raise(LocalJumpError, 'block required') unless block_given?
+      name = guild.to_s
+      raise(ArgumentError, 'invalid guild name') unless Ruqqus::VALID_GUILD.match?(name)
 
-      posts = http_get("#{Routes::GUILD}#{name}/listing")
-      posts[:data]&.map { |hash| Post.from_json(hash) } rescue Array.new
-    end
+      sort = opts[:sort] || :new
+      filter = opts[:filter] || :all
 
-    ##
-    # @overload each_post(guild, &block)
-    #   When called with a block, yields each post of the guild to the block then returns self.
-    #   @param guild [Guild,String] a {Guild} instance, or the name of the guild to query.
-    #   @yieldparam post [Post] yields a {Post} to the block.
-    #   @return [self]
-    #
-    # @overload each_post(guild)
-    #   When called without a block, returns an Enumerator for the posts of the guild.
-    #   @param guild [Guild,String] a {Guild} instance, or the name of the guild to query.
-    #   @return [Enumerator]
-    def each_post(guild)
-      #noinspection RubyYardReturnMatch
-      return enum_for(__method__, guild) unless block_given?
-      guild_posts(guild).each { |post| yield post }
-      #noinspection RubyYardReturnMatch
+      page = 1
+      loop do
+        params = { page: page, sort: sort, t: filter }
+        json = http_get("#{Routes::GUILD}#{name}/listing", headers(params: params))
+        break if json[:error]
+
+        json[:data].each { |hash| yield Post.from_json(hash) }
+        break if json[:data].size < 25
+        page += 1
+      end
+
       self
     end
 
     ##
-    # Retrieves an array of {Post} objects associated with a user.
+    # Enumerates through every post on Ruqqus, yielding each post to a block.
     #
-    # @param user [User,String] a {User} instance or the name of the account to query.
+    # @param opts [Hash] the options hash.
+    # @option opts [Symbol] :sort (:new) Valid: `:new`, `:top`, `:hot`, `:activity`, `:disputed`
+    # @option opts [Symbol] :filter (:all) Valid: `:all`, `:day`, `:week`, `:month`, `:year`
     #
-    # @return [Array<Post>] the posts submitted by the user.
-    # @see each_user_post
-    def user_posts(user)
-      each_submission(user, Post, 'listing').to_a
-    end
+    # @yieldparam post [Post] yields a post to the block.
+    # @return [self]
+    # @raise [LocalJumpError] when a block is not supplied to the method.
+    # @note An API invocation is required for every 25 items that are yielded to the block, so observing brief pauses at
+    #   these intervals is an expected behavior.
+    def each_post(**opts)
+      raise(LocalJumpError, 'block required') unless block_given?
 
-    ##
-    # Retrieves an array of {Comment} objects associated with a user.
-    #
-    # @param user [User,String] a {User} instance or the name of the account to query.
-    #
-    # @return [Array<Comment>] the comments submitted by the user.
-    # @see each_user_comment
-    def user_comments(user)
-      each_submission(user, Comment, 'comments').to_a
-    end
+      sort = opts[:sort] || :new
+      filter = opts[:filter] || :all
 
-    ##
-    # @overload each_user_post(user, &block)
-    #   When called with a block, yields each post submitted by the user before returning `self`.
-    #   @param user [User,String] a {User} instance or the name of the account to query.
-    #   @yieldparam post [Post] yields a {Post} to the block.
-    #   @return [self]
-    #
-    # @overload each_user_post(user, &block)
-    #   When called without a block, returns an enumerator for the user's comments.
-    #   @param user [User,String] a {User} instance or the name of the account to query.
-    #   @return [Enumerator] an enumerator for the user's posts.
-    def each_user_post(user)
-      #noinspection RubyYardReturnMatch
-      return enum_for(__method__, user) unless block_given?
-      each_submission(user, Post, 'listing') { |obj| yield obj }
-      #noinspection RubyYardReturnMatch
+      page = 1
+      loop do
+        params = { page: page, sort: sort, t: filter }
+        json = http_get(Routes::ALL_LISTINGS, header(params: params))
+        break if json[:error]
+        json[:data].each { |hash| yield Guild.from_json(hash) }
+        break if json[:data].size < 25
+        page += 1
+      end
       self
     end
 
-    ##
-    # @overload each_user_comment(user, &block)
-    #   When called with a block, yields each comment submitted by the user before returning `self`.
-    #   @param user [User,String] a {User} instance or the name of the account to query.
-    #   @yieldparam post [Comment] yields a {Comment} to the block.
-    #   @return [self]
-    #
-    # @overload each_user_comment(user, &block)
-    #   When called without a block, returns an enumerator for the user's comments.
-    #   @param user [User,String] a {User} instance or the name of the account to query.
-    #   @return [Enumerator] an enumerator for the user's comments.
-    def each_user_comment(user)
-      #noinspection RubyYardReturnMatch
-      return enum_for(__method__, user) unless block_given?
-      each_submission(user, Comment, 'comments') { |obj| yield obj }
-      #noinspection RubyYardReturnMatch
-      self
+    # @!endgroup Object Enumeration
+
+    def identity
+      @me ||= User.from_json(http_get(Routes::IDENTITY))
     end
-
-
-    # def identity
-    #   http_get("#{Routes::API_BASE}/identity")
-    # end
-
-    # def vote_comment(comment, value = 1)
-    #   id = comment.is_a?(Comment) ? comment.id : comment.to_s.sub(/^t3_/, '')
-    #   raise(Ruqqus::Error, 'invalid comment ID') unless Ruqqus::VALID_POST.match?(id)
-    #   amount = [-1, [1, value.to_i].min].max
-    #   url = "https://ruqqus.com/api/v1/vote/comment/#{id}/#{amount}"
-    #   !!http_post(url)[:error] rescue false
-    # end
 
     private
 
     ##
     # @api private
-    # Checks if the user's access token is stale and needs refreshed.
-    # @return [void]
-    # @note This is a no-op if it is not yet expired.
-    def refresh_token
-      @token.refresh if @token && @token.expired?
+    # Places a vote on a comment or post.
+    #
+    # @param id [String] the ID of a post or comment.
+    # @param value [Integer] the vote to place, between -1 and 1.
+    # @param route [String] the endpoint of the vote method to invoke.
+    #
+    # @return [Boolean] `true` if vote was placed successfully, otherwise `false`.
+    def submit_vote(id, value, route)
+      raise(Ruqqus::Error, 'invalid ID') unless Ruqqus::VALID_POST.match?(id)
+      amount = [-1, [1, value.to_i].min].max
+      !!http_post("#{route}#{id}/#{amount}")[:error] rescue false
     end
 
     ##
@@ -321,10 +395,8 @@ module Ruqqus
     # @param klass [Class] the type of object to return, must implement `.from_json`.
     # @param route [String] the final API route for the endpoint, either `"listing"` or "comments"`
     #
-    # @return [self,Enumerator] `self` when called with a block, otherwise an Enumerator object.
+    # @return [self]
     def each_submission(user, klass, route)
-      #noinspection RubyYardReturnMatch
-      return enum_for(__method__, user, klass, route) unless block_given?
 
       username = user.is_a?(User) ? user.username : user.to_s
       raise(Ruqqus::Error, 'invalid username') unless VALID_USERNAME.match?(username)
@@ -339,6 +411,7 @@ module Ruqqus
         break if json[:data].size < 25
         page += 1
       end
+      self
     end
 
     ##
@@ -351,9 +424,9 @@ module Ruqqus
     # @return [Hash] the response deserialized into a JSON hash.
     # @see http_post
     def http_get(uri, header = nil)
-      refresh_token
+      @token.refresh if @token && @token.expired?
       header ||= headers
-      response = RestClient.get(uri, header)
+      response = RestClient.get(uri.chomp('/'), header)
       @session = response.cookies['session_ruqqus'] if response.cookies['session_ruqqus']
       raise(Ruqqus::Error, 'HTTP request failed') if response.code < 200 || response.code >= 300
       JSON.parse(response, symbolize_names: response.body)
@@ -370,9 +443,9 @@ module Ruqqus
     # @return [Hash] the response deserialized into a JSON hash.
     # @see http_get
     def http_post(uri, params = {}, header = nil)
-      refresh_token
+      @token.refresh if @token && @token.expired?
       header ||= headers
-      response = RestClient.post(uri, params, header)
+      response = RestClient.post(uri.chomp('/'), params, header)
       @session = response.cookies['session_ruqqus'] if response.cookies['session_ruqqus']
       raise(Ruqqus::Error, 'HTTP request failed') if response.code < 200 || response.code >= 300
       JSON.parse(response, symbolize_names: response.body)

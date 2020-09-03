@@ -13,6 +13,9 @@ A Ruby API implementation for [Ruqqus](https://ruqqus.com/), an [open-source](ht
 [![Gem Version](https://badge.fury.io/rb/ruqqus.svg)](https://badge.fury.io/rb/ruqqus)
 [![Inline docs](http://inch-ci.org/github/ForeverZer0/ruqqus.svg?branch=master)](http://inch-ci.org/github/ForeverZer0/ruqqus)
 [![Maintainability](https://api.codeclimate.com/v1/badges/c39f44a706302e4cd340/maintainability)](https://codeclimate.com/github/ForeverZer0/ruqqus/maintainability)
+[![OpenIssues](https://img.shields.io/github/issues/ForeverZer0/ruqqus)](https://github.com/ForeverZer0/ruqqus/issues)
+[![License](https://img.shields.io/github/license/ForeverZer0/ruqqus)](https://opensource.org/licenses/MIT)
+[![Ruby](https://img.shields.io/badge/powered%20by-ruby-red)](https://www.ruby-lang.org/en/)
 
 ## Installation
 
@@ -112,7 +115,7 @@ user.created
 Obtain information about guilds.
 
 ```ruby
-guild = client.guild_info('Ruby')
+guild = client.guild('Ruby')
 
 # Query the number of members, description, accent color, etc.
 guild.member_count
@@ -136,7 +139,7 @@ Obtain information about posts.
 # https://ruqqus.com/post/<POST ID>/<POST TITLE>
  
 post_id = '2e0x'
-post = client.post_info(post_id)
+post = client.post(post_id)
 
 # Obtain relevant information pertaining the guilds on Ruqqus
   
@@ -162,15 +165,15 @@ Obtain information about comments. Comments are very similar to posts, but have 
 # https://ruqqus.com/post/<POST ID>/<POST TITLE>/<COMMENT ID>
 
 comment_id = '67mt'
-comment = client.comment_info(comment_id)
+comment = client.comment(comment_id)
 
-client.post_info(comment.post).title
+client.post(comment.post).title
 #=> "Hi. I'm Josh Roehl, singer and songwriter of the hit song \"Endless Summer\". I am hosting an AMA here."
  
 comment.body
 #=> "I'm fully aware that I'm not a very good singer. Let's call it half-singing, half-rapping." 
 
-client.user_info(comment.author_name).ban_reason
+client.user(comment.author_name).ban_reason
 #=> "Spam"
 ```
 
@@ -178,9 +181,6 @@ client.user_info(comment.author_name).ban_reason
 
 The bulk of the API is obviously related o performing actions as a user, such as posting, commenting, voting, etc., but
 also includes guild/admin management for GMs/admins, and app management for registered applications of the user.  
-
-
-
 
 ## Contributing
 

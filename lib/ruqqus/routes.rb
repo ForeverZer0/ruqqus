@@ -43,5 +43,21 @@ module Ruqqus
     ##
     # The endpoint for the POST method to submit a post.
     SUBMIT = "#{Routes::API_BASE}/submit/".freeze
+
+    ##
+    # The endpoint for the GET method to get the current user.
+    IDENTITY = "#{Routes::API_BASE}/identity".freeze
+
+    ##
+    # The endpoint for the GET method to get the guild listings.
+    GUILDS = "#{Routes::API_BASE}/guilds".freeze
+
+    ##
+    # The endpoint for the GET method to get the front page listings.
+    FRONT_PAGE = "#{Routes::API_BASE}/front/listing".freeze
+
+    ##
+    # The endpoint for the GET method to get all post listings.
+    ALL_LISTINGS = "#{Routes::API_BASE}/all/listing".freeze
   end
 end
