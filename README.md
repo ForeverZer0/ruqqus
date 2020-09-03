@@ -64,11 +64,13 @@ Once you have obtained your client ID, secret, and a user token, you can create 
 ```ruby
 require 'ruqqus'
 
-client_id =     '...' # Received after registering application
+client_id     = '...' # Received after registering application
 client_secret = '...' # Received after registering application
-token =         '...' # An account "refresh token", or one generated from ruqqus-oauth
+code          = '...' # The code obtained from the OAuth2 redirect URL, or one generated from ruqqus-oauth
 
-client = Ruqqus::Client.new(client_id, client_secret, token)
+# You must implement a responsible way of storing this token for reuse.
+token = Token.new(client_id, client_secret, code)
+client = Ruqqus::Client.new(token)
 ```
 
 ### Querying General Information

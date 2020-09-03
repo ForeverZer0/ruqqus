@@ -40,7 +40,7 @@ module Ruqqus
     def user(username)
       raise(ArgumentError, 'username cannot be nil') unless username
       raise(ArgumentError, 'invalid username') unless VALID_USERNAME.match?(username)
-      User.from_json(http_get("#{Routes::USER_INFO}#{username}"))
+      User.from_json(http_get("#{Routes::USER}#{username}"))
     end
 
     ##
@@ -55,7 +55,7 @@ module Ruqqus
     def guild(guild_name)
       raise(ArgumentError, 'guild_name cannot be nil') unless guild_name
       raise(ArgumentError, 'invalid guild name') unless VALID_GUILD.match?(guild_name)
-      Guild.from_json(http_get("#{Routes::GUILD_INFO}#{guild_name}"))
+      Guild.from_json(http_get("#{Routes::GUILD}#{guild_name}"))
     end
 
     ##
@@ -70,7 +70,7 @@ module Ruqqus
     def post(post_id)
       raise(ArgumentError, 'post_id cannot be nil') unless post_id
       raise(ArgumentError, 'invalid post ID') unless VALID_POST.match?(post_id)
-      Post.from_json(http_get("#{Routes::POST_INFO}#{post_id}"))
+      Post.from_json(http_get("#{Routes::POST}#{post_id}"))
     end
 
     ##
@@ -85,7 +85,7 @@ module Ruqqus
     def comment(comment_id)
       raise(ArgumentError, 'comment_id cannot be nil') unless comment_id
       raise(ArgumentError, 'invalid comment ID') unless VALID_POST.match?(comment_id)
-      Comment.from_json("#{Routes::COMMENT_INFO}#{comment_id}")
+      Comment.from_json("#{Routes::COMMENT}#{comment_id}")
     end
 
     ##
@@ -159,15 +159,11 @@ module Ruqqus
       name = guild.is_a?(Guild) ? guild.name : guild.strip.sub(/^\+/, '')
       raise(ArgumentError, 'invalid guild name') unless Ruqqus::VALID_GUILD.match?(name)
       raise(ArgumentError, 'title cannot be nil or empty') unless title && !title.empty?
-      params = { title: title, board: name }
+      params = { title: title, board: name, body: body }
 
       if opts[:image]
-        #noinspection RubyResolve
-        raise(Errno::ENOENT, opts[:image]) unless File.exist?(opts[:image])
         if opts[:imgur_client]
           params[:url] = Ruqqus.imgur_upload(opts[:imgur_client], opts[:image])
-          #noinspection RubyYardReturnMatch
-          return nil unless params[:url]
         else
           params[:file] = File.new(opts[:image])
         end
@@ -175,24 +171,11 @@ module Ruqqus
         raise(ArgumentError, 'invalid URI') unless URI.regexp =~ opts[:url]
         params[:url] = opts[:url]
       end
-      params[:body] = body if body
 
       if [params[:body], params[:image], params[:url]].none?
         raise(ArgumentError, 'text body cannot be nil or empty without URL or image') if body.nil? || body&.empty?
       end
-      Post.from_json(http_post("#{Routes::API_BASE}/submit", params)) rescue nil
-    end
-
-    ##
-    # Deletes an existing post previously created by the current user.
-    #
-    # @param post [Post,String] a {Post} instance of the unique ID of a post.
-    #
-    # @return [Boolean] `true` if deletion completed without error, otherwise `false`.
-    def post_delete(post)
-      id = post.is_a?(Post) ? post.id : post.sub(/^t3_/, '')
-      url = "#{Routes::API_BASE}/delete_post/#{id}"
-      http_post(url).empty? rescue false
+      Post.from_json(http_post(Routes::SUBMIT, params)) rescue nil
     end
 
     ##
@@ -206,7 +189,7 @@ module Ruqqus
       name = guild.is_a?(Guild) ? guild.name : guild.to_s
       raise(Ruqqus::Error, 'invalid guild name') unless Ruqqus::VALID_GUILD.match?(name)
 
-      posts = http_get("#{Routes::API_BASE}/guild/#{name}/listing")
+      posts = http_get("#{Routes::GUILD}#{name}/listing")
       raise(Ruqqus::Error, "failed to get posts for guild #{name}") if posts[:error]
 
       posts[:data].map { |hash| Post.from_json(hash) }
@@ -232,27 +215,24 @@ module Ruqqus
     end
 
     ##
-    # Checks if the specified guild name is valid and available for creation.
+    # Checks if the specified guild or user name is available to be created.
     #
-    # @param guild_name [String] the name of the guild to query (case insensitive).
+    # @param name [String] the name of a guild or username to query.
+    # @param type [Symbol] the type of entity to query, either `:username` or `:guild`.
     #
-    # @return [Boolean] `true` if the specified guild name is valid and available for creation, otherwise `false`.
-    def guild_available?(guild_name)
-      return false unless VALID_GUILD.match?(guild_name)
-      json = http_get("#{Routes::GUILD_AVAILABLE}#{guild_name}")
-      !!json[guild_name.to_sym] rescue false
-    end
-
-    ##
-    # Checks if the specified username is valid and available for creation.
-    #
-    # @param username [String] the name of the user account to query (case insensitive).
-    #
-    # @return [Boolean] `true` if the specified username is valid and available for creation, otherwise `false`.
-    def username_available?(username)
-      return false unless VALID_USERNAME.match?(username)
-      json = http_get("#{Routes::USERNAME_AVAILABLE}#{username}")
-      !!json[username.to_sym] rescue false
+    # @return [Boolean] `true` is name is available, otherwise `false` if it has been reserved or is in use.
+    def available?(name, type: :username)
+      case type
+      when :username
+        return false unless VALID_USERNAME.match?(username)
+        route = "#{Routes::USERNAME_AVAILABLE}#{name}"
+      when :guild
+        return false unless VALID_GUILD.match?(guild_name)
+        route = "#{Routes::GUILD_AVAILABLE}#{name}"
+      else return false
+      end
+      json = http_get(route)
+      !!json[name.to_sym] rescue false
     end
 
     ##
@@ -263,7 +243,7 @@ module Ruqqus
     # @return [Array<Post>] the posts submitted by the user.
     # @see each_user_post
     def user_posts(user)
-      each_user_submission(user, Post, 'listing').to_a
+      each_submission(user, Post, 'listing').to_a
     end
 
     ##
@@ -274,7 +254,7 @@ module Ruqqus
     # @return [Array<Comment>] the comments submitted by the user.
     # @see each_user_comment
     def user_comments(user)
-      each_user_submission(user, Comment, 'comments').to_a
+      each_submission(user, Comment, 'comments').to_a
     end
 
     ##
@@ -291,7 +271,7 @@ module Ruqqus
     def each_user_post(user)
       #noinspection RubyYardReturnMatch
       return enum_for(__method__, user) unless block_given?
-      each_user_submission(user, Post, 'listing') { |obj| yield obj }
+      each_submission(user, Post, 'listing') { |obj| yield obj }
       #noinspection RubyYardReturnMatch
       self
     end
@@ -310,7 +290,7 @@ module Ruqqus
     def each_user_comment(user)
       #noinspection RubyYardReturnMatch
       return enum_for(__method__, user) unless block_given?
-      each_user_submission(user, Comment, 'comments') { |obj| yield obj }
+      each_submission(user, Comment, 'comments') { |obj| yield obj }
       #noinspection RubyYardReturnMatch
       self
     end
@@ -376,7 +356,7 @@ module Ruqqus
     # @param route [String] the final API route for the endpoint, either `"listing"` or "comments"`
     #
     # @return [self,Enumerator] `self` when called with a block, otherwise an Enumerator object.
-    def each_user_submission(user, klass, route)
+    def each_submission(user, klass, route)
       #noinspection RubyYardReturnMatch
       return enum_for(__method__, user, klass, route) unless block_given?
 
@@ -385,16 +365,14 @@ module Ruqqus
 
       page = 1
       loop do
-        url = "#{Routes::API_BASE}/user/#{username}/#{route}"
+        url = "#{Routes::USER}#{username}/#{route}"
         json = http_get(url, headers(params: { page: page }))
+        break if json[:error]
 
-        break unless json[:data]
         json[:data].each { |hash| yield klass.from_json(hash) }
         break if json[:data].size < 25
         page += 1
       end
-      #noinspection RubyYardReturnMatch
-      self
     end
 
     ##
@@ -410,7 +388,7 @@ module Ruqqus
       refresh_token
       header ||= headers
       response = RestClient.get(uri, header)
-      @session = response.cookies['sesssion_ruqqus'] if response.cookies['sesssion_ruqqus']
+      @session = response.cookies['session_ruqqus'] if response.cookies['session_ruqqus']
       raise(Ruqqus::Error, 'HTTP request failed') if response.code < 200 || response.code >= 300
       JSON.parse(response, symbolize_names: response.body)
     end
@@ -429,7 +407,7 @@ module Ruqqus
       refresh_token
       header ||= headers
       response = RestClient.post(uri, params, header)
-      @session = response.cookies['sesssion_ruqqus'] if response.cookies['sesssion_ruqqus']
+      @session = response.cookies['session_ruqqus'] if response.cookies['session_ruqqus']
       raise(Ruqqus::Error, 'HTTP request failed') if response.code < 200 || response.code >= 300
       JSON.parse(response, symbolize_names: response.body)
     end

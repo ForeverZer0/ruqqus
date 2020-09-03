@@ -53,26 +53,20 @@ module Ruqqus
   # @option opts [String] :title a title to set on the Imgur post
   # @option opts [String] :description a description to set on the Imgur post
   #
-  # @return [String,NilClass] the direct image link from Imgur, or the `nil` if an error occurred.
+  # @return [String] the direct image link from Imgur.
   # @note To obtain a free Imgur client ID, visit https://api.imgur.com/oauth2/addclient
-  # @note No authentication is required for anonymous image upload, though rate limiting applies.
+  # @note No authentication is required for anonymous image upload, though rate limiting (very generous) applies.
   # @see Client.post_create
   def self.imgur_upload(client_id, image_path, **opts)
     #noinspection RubyResolve
     raise(Errno::ENOENT, image_path) unless File.exist?(image_path)
-    raise(ArgumentError, 'client_id cannot be nil or empty') unless client_id && !client_id.empty?
+    raise(ArgumentError, 'client_id cannot be nil or empty') if client_id.nil? || client_id.empty?
 
     header = { 'Content-Type': 'application/json', 'Authorization': "Client-ID #{client_id}" }
-    params = { image: File.new(image_path), type: 'file' }
-    params[:title] = opts[:title] if opts[:title]
-    params[:description] = opts[:description] if opts[:description]
+    params = { image: File.new(image_path), type: 'file', title: opts[:title], description: opts[:description] }
 
-    begin
-      response = RestClient.post('https://api.imgur.com/3/upload', params, header)
-      json = JSON.parse(response.body, symbolize_names: true)
-      return json[:data][:link]
-    rescue
-      return nil
-    end
+    response = RestClient.post('https://api.imgur.com/3/upload', params, header)
+    json = JSON.parse(response.body, symbolize_names: true)
+    json[:data][:link]
   end
 end
