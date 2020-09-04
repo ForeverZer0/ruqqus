@@ -45,6 +45,40 @@ module Ruqqus
   end
 
   ##
+  # @!attribute proxy [rw]
+  #   @return [URI?] the URI of the proxy server in use, or `nil` if none has been set.
+
+  ##
+  # Obtains a list of URIs of proxy servers that can be used to route network traffic through.
+  #
+  # @param anon [Symbol] anonymity filter for the servers to return, either `:transparent`, `:anonymous`, or `:elite`.
+  # @param country [String,Symbol] country filter for servers to return, an ISO-3166 two digit county code.
+  #
+  # @return [Array<URI>] an array of proxy URIs that match the input filters.
+  # @see https://www.nationsonline.org/oneworld/country_code_list.htm
+  def self.proxy_list(anon: :elite, country: nil)
+    raise(ArgumentError, 'invalid anonymity value') unless %i(transparent anonymous elite).include?(anon.to_sym)
+
+    url = "https://www.proxy-list.download/api/v1/get?type=https&anon=#{anon}"
+    url << "&country=#{country}" if country
+
+    RestClient.get(url) do |resp|
+      break if resp.code != 200
+      return resp.body.split.map { |proxy| URI.parse("https://#{proxy}") }
+    end
+    Array.new
+  end
+
+  def self.proxy
+    RestClient.proxy
+  end
+
+  def self.proxy=(uri)
+    raise(TypeError, "#{uri} is not a URI") if uri && !uri.is_a?(URI)
+    RestClient.proxy = uri
+  end
+
+  ##
   # Helper function to automate uploading images to Imgur anonymously and returning the direct image link.
   #
   # @param client_id [String] an Imgur client ID
