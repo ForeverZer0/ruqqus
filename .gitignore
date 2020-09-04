@@ -168,3 +168,4 @@ modules.xml
 
 # JSON file containing the token for test user during development
 /token.json
+/test.rb

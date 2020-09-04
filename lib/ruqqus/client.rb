@@ -9,7 +9,7 @@ module Ruqqus
 
     ##
     # The user-agent the client identified itself as.
-    USER_AGENT = "ruqqus-ruby/#{Ruqqus::VERSION} (efreed09@gmail.com)".freeze
+    USER_AGENT = "ruqqus-ruby/#{Ruqqus::VERSION}".freeze
 
     ##
     # A collection of valid scopes that can be authorized.
@@ -20,20 +20,37 @@ module Ruqqus
     DEFAULT_HEADERS = { 'User-Agent': USER_AGENT, 'Accept': 'application/json', 'Content-Type': 'application/json' }.freeze
 
     ##
-    # @return [Token] the OAuth2 token that grants the client authentication.
-    attr_reader :token
+    # @!attribute [rw] token
+    #   @return [Token] the OAuth2 token that grants the client authentication.
 
     ##
     # @!attribute [r] identity
     #   @return [User] the authenticated user this client is performing actions as.
 
     ##
-    # Creates a new instance of the {Client} class.
+    # @overload initialize(client_id, client_secret, token)
+    #   Creates a new instance of the {Client} class with an existing token for authorization.
+    #   @param client_id [String] the client ID of your of your application, issued after registration on Ruqqus.
+    #   @param client_secret [String] the client secret of your of your application, issued after registration on Ruqqus.
+    #   @param token [Token] a valid access token that has previously been granted access for the client.
     #
-    # @param token [Token] a valid access token to authorize the client.
-    def initialize(token)
-      @token = token || raise(ArgumentError, 'token cannot be nil')
+    # @overload initialize(client_id, client_secret, code)
+    #   Creates a new instance of the {Client} class with an existing token for authorization.
+    #   @param client_id [String] the client ID of your of your application, issued after registration on Ruqqus.
+    #   @param client_secret [String] the client secret of your of your application, issued after registration on Ruqqus.
+    #   @param code [String] a the code from the Oauth2 redirect to create a new {Token} and grant access to it.
+    def initialize(client_id, client_secret, token)
+      @client_id = client_id || raise(ArgumentError, 'client ID cannot be nil')
+      @client_secret = client_secret || raise(ArgumentError, 'client secret cannot be nil')
+
+      @token = token.is_a?(Token) ? token : Token.new(client_id, client_secret, token.to_s)
       @session = nil
+    end
+
+    attr_reader :token
+
+    def token=(token)
+      @token = token || raise(ArgumentError, 'token cannot be nil')
     end
 
     # @!group Object Querying
@@ -358,8 +375,23 @@ module Ruqqus
 
     # @!endgroup Object Enumeration
 
+    ##
+    # @return [User] the authenticated user this client is performing actions as.
     def identity
       @me ||= User.from_json(http_get(Routes::IDENTITY))
+    end
+
+    ##
+    # @overload token_refreshed(&block)
+    #   Sets a callback to be invoked when the token is refreshed, and a new access token is assigned.
+    #   @yieldparam token [Token] yields the newly refreshed {Token} to the block.
+    #
+    # @overload token_refreshed
+    #   When called without a block, clears any callback that was previously assigned.
+    #
+    # @return [void]
+    def token_refreshed(&block)
+      @refreshed = block_given? ? block : nil
     end
 
     private
@@ -444,7 +476,7 @@ module Ruqqus
     # @return [Hash] the response deserialized into a JSON hash.
     # @see http_post
     def http_get(uri, header = nil)
-      @token.refresh if @token && @token.expired?
+      refresh_token
       header ||= headers
       response = RestClient.get(uri.chomp('/'), header)
       @session = response.cookies['session_ruqqus'] if response.cookies['session_ruqqus']
@@ -463,12 +495,21 @@ module Ruqqus
     # @return [Hash] the response deserialized into a JSON hash.
     # @see http_get
     def http_post(uri, params = {}, header = nil)
-      @token.refresh if @token && @token.expired?
+      refresh_token
       header ||= headers
       response = RestClient.post(uri.chomp('/'), params, header)
       @session = response.cookies['session_ruqqus'] if response.cookies['session_ruqqus']
       raise(Ruqqus::Error, 'HTTP request failed') if response.code < 200 || response.code >= 300
       JSON.parse(response, symbolize_names: response.body)
+    end
+
+    ##
+    # @api private
+    # Checks if token is expired, and refreshes if so, calling the {#token_refreshed} block as if defined.
+    def refresh_token
+      return unless @token.expired?
+      @token.refresh(@client_id, @client_secret)
+      @refreshed&.call(@token)
     end
   end
 end

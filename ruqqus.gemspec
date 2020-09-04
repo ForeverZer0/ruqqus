@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.version       = Ruqqus::VERSION
   spec.authors       = ['ForeverZer0']
   spec.email         = ['efreed09@gmail.com']
-  spec.summary       = %q{A Ruby API implementation for Ruqqus, an open-source platform for online communities.}
+  spec.summary       = %q{A Ruby API implementation for Ruqqus, an open-source platform for online communities}
   spec.description   = %q{A Ruby API implementation for Ruqqus, an open-source platform for online communities, free of censorship and moderator abuse by design.}
   spec.homepage      = 'https://github.com/ForeverZer0/ruqqus'
   spec.license       = 'MIT'

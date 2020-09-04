@@ -2,6 +2,12 @@
 
 Documentation for library API changes.
 
+## Version 1.1.1
+
+* BUGFIX: Added acceptance of variable args to `Token#to_json`
+* BUGFIX: Fixed regex validator in `ruqqus-oauth` for the client ID
+* Separated the client ID/secret from the `Token` class, and placed within `Client` to now handle this logic
+
 ## Version 1.1.0
 
 * Implemented `Ruqqus::Token` class to handle OAuth2 authentication
