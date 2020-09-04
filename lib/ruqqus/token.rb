@@ -37,14 +37,10 @@ module Ruqqus
       headers = { 'User-Agent': Client::USER_AGENT, 'Accept': 'application/json', 'Content-Type': 'application/json' }
       params = { code: code, client_id: client_id, client_secret: client_secret, grant_type: 'code', permanent: persist }
       resp = RestClient.post('https://ruqqus.com/oauth/grant', params, headers )
-
-      @client_id = client_id
-      @client_secret = client_secret
       @data = JSON.parse(resp.body, symbolize_names: true)
 
       raise(Ruqqus::Error, 'failed to grant access for token') if @data[:oauth_error]
     end
-
 
     def access_token
       @data[:access_token]
@@ -70,32 +66,14 @@ module Ruqqus
     # Refreshes the access token and resets its time of expiration.
     #
     # @return [void]
-    def refresh
+    def refresh(client_id, client_secret)
       headers = { 'User-Agent': Client::USER_AGENT, Authorization: "Bearer #{access_token}" }
-      params = { client_id: @client_id, client_secret: @client_secret, refresh_token: refresh_token, grant_type: 'refresh' }
+      params = { client_id: client_id, client_secret: client_secret, refresh_token: refresh_token, grant_type: 'refresh' }
       resp = RestClient.post('https://ruqqus.com/oauth/grant', params, headers )
 
       data = JSON.parse(resp.body, symbolize_names: true)
       raise(Ruqqus::Error, 'failed to refresh authentication token') unless resp.code == 200 || data[:oauth_error]
       @data.merge!(data)
-      @refreshed&.call(self)
-    end
-
-    ##
-    # Sets a callback block that will be invoked when the token is refresh. This can be used to automate saving the
-    # token after its gets updated.
-    #
-    # @yieldparam token [Token] yields the token to the block.
-    #
-    # @return [self]
-    #
-    # @example Auto-save updated token
-    #   token = Token.load_json('./token.json')
-    #   token.on_refresh { |t| t.save_json('./token.json') }
-    def on_refresh(&block)
-      raise(LocalJumpError, "block required") unless block_given?
-      @refreshed = block
-      self
     end
 
     ##
@@ -106,8 +84,8 @@ module Ruqqus
 
     ##
     # @return [String] the object as a JSON-formatted string.
-    def to_json
-      { client_id: @client_id, client_secret: @client_secret, data: @data }.to_json
+    def to_json(*_unused_)
+      @data.to_json
     end
 
     ##
@@ -133,15 +111,13 @@ module Ruqqus
     ##
     # Loads the object from a JSON-formatted string.
     #
-    # @param json [String] a JSON string representing the object.
+    # @param json [String,Hash] a JSON string representing the object, or the parsed Hash of the JSON data.
     #
     # @return [Object] the loaded object.
     def self.from_json(payload)
-      data = JSON.parse(payload, symbolize_names: true)
+      data = payload.is_a?(Hash) ? payload: JSON.parse(payload, symbolize_names: true)
       token = allocate
-      token.instance_variable_set(:@client_id, data[:client_id])
-      token.instance_variable_set(:@client_secret, data[:client_secret])
-      token.instance_variable_set(:@data, data[:data])
+      token.instance_variable_set(:@data, data)
       token
     end
   end

@@ -41,11 +41,11 @@ class RuqqusOAuth
   end
 
   def ask_client_id(prompt)
-    prompt.ask('Client ID: ') { |q| q.validate(/^[A-Fa-f0-9]+$/, "Invalid client ID") }
+    prompt.ask('Client ID: ') { |q| q.validate(/^[A-Za-z0-9_-]+$/, "Invalid client ID") }
   end
 
   def ask_client_secret(prompt)
-    prompt.ask('Client Secret: ') { |q| q.validate(/^[A-Fa-f0-9]+$/, "Invalid client secret") }
+    prompt.ask('Client Secret: ') { |q| q.validate(/^[A-Za-z0-9_-]+$/, "Invalid client secret") }
   end
 
   def ask_client_redirect(prompt)

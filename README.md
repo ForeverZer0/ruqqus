@@ -67,7 +67,11 @@ code          = 'XXXXXX' # The generated code (or the one you obtained via tradi
 
 # You must implement a responsible way of storing this token for reuse.
 token = Ruqqus::Token.new(client_id, client_secret, code)
-client = Ruqqus::Client.new(token)
+client = Ruqqus::Client.new(client_id, client_secret, token)
+
+# Alternatively, you can create a new token and a client with a single call.
+# This will perform the "grant" action of the code while creating it automatically 
+client = Ruqqus::Client.new(client_id, client_secret, code)
 ```
 
 The token will automatically refresh itself as-needed, but you will need to handle storing its new value for repeated
@@ -75,12 +79,16 @@ uses. To facilitate this and make it easier, there is a callback that can be sub
 time the access key is updated.
 
 ```ruby
+# Load an existing token that has already been authorized
 token = Ruqqus::Token.load_json('./token.json')
-token.on_refresh do |t|
+
+# Create your client
+client = Ruqqus::Client.new(client_id, client_secret, token)
+
+# Set the callback block to automatically update the saved token when it refreshes
+client.token_refreshed do |t|
   t.save_json('./token.json')
 end
-
-client = Ruqqus::Client.new(token)
 ```
 
 The token obtains sensitive material, and due to the security issues of storing it in plain text, this functionality is
@@ -89,7 +97,7 @@ and where you store this information so that it is not compromised.
 
 ## Usage
 
-See the [documentation](https://www.rubydoc.info/gems/ruqqus) for a complete API reference.
+See the [documentation](https://www.rubydoc.info/gems/ruqqus) for a complete API reference (100% coverage).
 
 ### Features
 
