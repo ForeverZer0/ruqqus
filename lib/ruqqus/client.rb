@@ -327,9 +327,29 @@ module Ruqqus
       page = 1
       loop do
         params = { page: page, sort: sort, t: filter }
-        json = http_get(Routes::ALL_LISTINGS, header(params: params))
+        json = http_get(Routes::ALL_LISTINGS, headers(params: params))
         break if json[:error]
-        json[:data].each { |hash| yield Guild.from_json(hash) }
+        json[:data].each { |hash| yield Post.from_json(hash) }
+        break if json[:data].size < 25
+        page += 1
+      end
+      self
+    end
+
+    ##
+    # Enumerates through every post on the "front page", yielding each post to a block.
+    #
+    # @yieldparam post [Post] yields a {Post} to the block.
+    #
+    # @return [self]
+    # @note The front page uses a unique algorithm that is essentially "hot", but for guilds the user is subscribed to.
+    def each_home_post
+      raise(LocalJumpError, 'block required') unless block_given?
+      page = 1
+      loop do
+        json = http_get(Routes::FRONT_PAGE, headers(params: { page: page }))
+        break if json[:error]
+        json[:data].each { |hash| yield Post.from_json(hash) }
         break if json[:data].size < 25
         page += 1
       end

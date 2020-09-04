@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in ruqqus.gemspec
+# Dependencies specified in ruqqus.gemspec
 gemspec

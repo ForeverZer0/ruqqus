@@ -106,17 +106,3 @@ module Ruqqus
     !!json[name]
   end
 end
-
-token = Ruqqus::Token.load_json('../token.json')
-token.on_refresh { |t| t.save_json('../token.json') }
-client = Ruqqus::Client.new(token)
-
-# https://ruqqus.com/post//bodycam-footage-from-police-shooting-of/
-
-
-p client.post_create('test', 'Test Post', 'Some text')
-
-# https://ruqqus.com/post/2xtm/bodycam-footage-from-police-shooting-of
-# https://ruqqus.com/post/2xtm/bodycam-footage-from-police-shooting-of/a7dc
-# @app.route("/api/v1/embed/comment/<cid>", methods=["GET"])
-# @app.route("/api/v1/embed/post/<pid>/comment/<cid>", methods=["GET"])

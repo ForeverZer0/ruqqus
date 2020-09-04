@@ -9,8 +9,12 @@ module Ruqqus
     API_VERSION = 1
 
     ##
+    # The top-level site URL.
+    HOME = 'https://ruqqus.com'.freeze
+
+    ##
     # The base URL for the Ruqqus REST API.
-    API_BASE = "https://ruqqus.com/api/v#{API_VERSION}".freeze
+    API_BASE = "#{HOME}/api/v#{API_VERSION}".freeze
 
     ##
     # The endpoint for the GET method to obtain user information.
@@ -34,11 +38,11 @@ module Ruqqus
 
     ##
     # The endpoint for the GET method to query guild availability.
-    GUILD_AVAILABLE = 'https://ruqqus.com/api/board_available/'.freeze
+    GUILD_AVAILABLE = "#{HOME}/api/board_available/".freeze
 
     ##
     # The endpoint for the GET method to query username availability.
-    USERNAME_AVAILABLE = 'https://ruqqus.com/api/is_available/'.freeze
+    USERNAME_AVAILABLE = "#{HOME}/api/is_available/".freeze
 
     ##
     # The endpoint for the POST method to submit a post.
@@ -59,5 +63,6 @@ module Ruqqus
     ##
     # The endpoint for the GET method to get all post listings.
     ALL_LISTINGS = "#{Routes::API_BASE}/all/listing".freeze
+
   end
 end

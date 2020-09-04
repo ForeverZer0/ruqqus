@@ -10,7 +10,7 @@ A Ruby API implementation for [Ruqqus](https://ruqqus.com/), an [open-source](ht
 ) if you haven't yet!
 
 [![Build Status](https://travis-ci.org/ForeverZer0/ruqqus.svg?branch=master)](https://travis-ci.org/ForeverZer0/ruqqus)
-[![Gem Version](https://badge.fury.io/rb/ruqqus.svg)](https://badge.fury.io/rb/ruqqus)
+[![Gem Version](https://badge.fury.io/rb/ruqqus.svg)](https://rubygems.org/gems/ruqqus)
 [![Inline docs](http://inch-ci.org/github/ForeverZer0/ruqqus.svg?branch=master)](http://inch-ci.org/github/ForeverZer0/ruqqus)
 [![Maintainability](https://api.codeclimate.com/v1/badges/c39f44a706302e4cd340/maintainability)](https://codeclimate.com/github/ForeverZer0/ruqqus/maintainability)
 [![OpenIssues](https://img.shields.io/github/issues/ForeverZer0/ruqqus)](https://github.com/ForeverZer0/ruqqus/issues)
@@ -37,57 +37,136 @@ To use the `ruqqus-oauth` helper to generate user tokens for desktop development
 
     $ gem install ruqqus --development
 
-## Usage
+## Authentication
 
-See the [documentation](https://www.rubydoc.info/gems/ruqqus) for a complete API reference.
+Ruqqus enables 3rd-party client authorization using the [OAuth2 protocol](https://oauth.net/2/). Before it is possible
+to interact with the API, you will need to first [register an application](https://ruqqus.com/settings/apps), which can
+be supply you with an API key/secret pair. This key will allow you to authorize users and grant privileges with a an
+assortment of scopes to fit your needs.
 
-### Client Registration, Authentication, and Creation
+### Desktop Development
 
-The Ruqqus API first requires [OAuth2](https://oauth.net/2/) authentication to perform nearly all actions. To obtain
-a client ID for your API application, first login into your Ruqqus account and 
-[register an application](https://ruqqus.com/settings/apps). Registration requires administrator approval, but typically
-is granted within hours of applying.
+This gem includes a tool to automate obtaining a client code for users, primarily aimed for desktop developers who do
+not have a server running to receive the redirect URL. The tool requires the `mechanize` and `tty-prompt` gems, which
+are not included by default.
 
-#### Development Testing
+To install the tool with its dependencies, install this gem with the following flag.
 
-For desktop development and testing, there is an additional tool included for rapidly authorizing a user account to
-interact with the API using any valid HTTPS address as the redirect. Simply run `ruqqus-oauth`, input credentials of the
-account and application, and it will automatically authorize the user and issue a token to use.
+    $ gem insall ruqqus --development
 
-The dependencies for this application are included in the development dependencies of the gem, so will require the gem
-to be installed as `gem install ruqqus --development`, or manually by installing the following gems:
-
-* `mechanize`
-* `tty-prompt`
-
-#### Create a Client
-
-Once you have obtained your client ID, secret, and a user token, you can create a client:
+Once installed, simply run `ruqqus-oauth`. You will be prompted to input the API key that was issued by Ruqqus to your
+approved application, and the user credentials for the account you with to authorize, such as that for a bot. Once
+executed, an authorization code will be displayed on-screen, which you can then use to create a token.
 
 ```ruby
 require 'ruqqus'
 
-client_id     = '...' # Received after registering application
-client_secret = '...' # Received after registering application
-code          = '...' # The code obtained from the OAuth2 redirect URL, or one generated from ruqqus-oauth
+client_id     = 'XXXXXX' # Received after registering application
+client_secret = 'XXXXXX' # Received after registering application
+code          = 'XXXXXX' # The generated code (or the one you obtained via traditional means)
 
 # You must implement a responsible way of storing this token for reuse.
-token = Token.new(client_id, client_secret, code)
+token = Ruqqus::Token.new(client_id, client_secret, code)
 client = Ruqqus::Client.new(token)
 ```
 
-### Querying General Information
+The token will automatically refresh itself as-needed, but you will need to handle storing its new value for repeated
+uses. To facilitate this and make it easier, there is a callback that can be subscribed to which will be called each
+time the access key is updated.
 
-You can easily query for general information on the following entities:
+```ruby
+token = Ruqqus::Token.load_json('./token.json')
+token.on_refresh do |t|
+  t.save_json('./token.json')
+end
+
+client = Ruqqus::Client.new(token)
+```
+
+The token obtains sensitive material, and due to the security issues of storing it in plain text, this functionality is
+left to the user. The token is essentially the equivalent of your user credentials for Ruqqus, so bear that in mind how
+and where you store this information so that it is not compromised.
+
+## Usage
+
+See the [documentation](https://www.rubydoc.info/gems/ruqqus) for a complete API reference.
+
+### Features
+
+The bulk of the API is obviously related to performing actions as a user, such as posting, commenting, voting, etc.. The
+following highlights some of these features.
+
+* Vote on posts and comments
+* Create posts (text/link/image)
+* Automated image upload via anonymous upload to Imgur ([API Key](https://imgur.com/account/settings/apps) required) 
+* Create/edit/delete comments
+* Enumerate all existing guilds
+* Enumerate all posts in a guild
+* Enumerate all posts on the "front page", "all", etc., with sorting and filtering
+* Enumerate all posts/comments of users (excluding private/banned/blocked accounts)
+
+#### Misc. Examples
+
+Some random examples displaying the ease in performing various operations.
+
+##### Let's do some voting!
+```ruby
+client.each_user_post('captainmeta4') do |post|
+  # Upvote our fearless leader's posts
+  client.vote_post(post, 1)
+end
+
+client.each_user_comment('captainmeta4') do |comment|
+  # ...and his comments.
+  client.vote_comment(comment, 1)
+end
+```
+
+##### Monitor For New Posts
+```ruby
+delay = 10
+puts 'Watching for new posts, press Ctrl+C to quit'
+loop do
+  time = Time.now
+  sleep(delay)
+
+  puts "Checking the front page for new posts since #{time}"
+  client.each_post(sort: :new, filter: :all) do |post|
+    # Stop checking post once we encounter one older than this iteration
+    break if post.created < time
+    # Do something about this new post showing up in All
+    puts "Found a new post: '#{post.title}'"
+  end
+end
+```
+##### Download all images from a guild
+```ruby
+require 'open-uri'
+domains = %w[i.ruqqus.com i.imgur.com]
+
+Dir.mkdir('./tree_pics') unless Dir.exist?('./tree_pics')
+client.each_guild_post('Trees', sort: :new) do |post|
+  next unless domains.include?(post.domain)
+  ext = File.extname(post.url)
+  ext = '.jpg' if ext.empty? # We don't care, just an example
+  path = File.join('./tree_pics', post.id + ext)
+  URI.open(post.url) { |src| File.open(path, 'wb') { |dst| dst.write(src.read) } }
+end
+```
+
+### Types
+
+The Ruqqus API exposes four primary types:
 
 * Users
 * Guilds
 * Posts
 * Comments
 
-Each of these entities also has an `#id` property that can be used with other related API functions, such as voting,
-replying, deleting, etc. The full documentation listing all properties they obtain can be found 
-[here](https://www.rubydoc.info/gems/ruqqus), but the API is rather intuitive. Here are some samples of their basic
+Nearly all client operations interact with one or more of these entities in some way. Each of these types also has an
+`#id` property that can be used with other related API functions, such as voting, replying, deleting, etc. The full
+documentation listing all properties they obtain can be found [here](https://www.rubydoc.info/gems/ruqqus), but the API
+is rather intuitive. Here are some samples of their basic
 usage.
 
 #### Users
@@ -176,11 +255,6 @@ comment.body
 client.user(comment.author_name).ban_reason
 #=> "Spam"
 ```
-
-### User Actions
-
-The bulk of the API is obviously related o performing actions as a user, such as posting, commenting, voting, etc., but
-also includes guild/admin management for GMs/admins, and app management for registered applications of the user.  
 
 ## Contributing
 
