@@ -111,7 +111,7 @@ module Ruqqus
     ##
     # Loads the object from a JSON-formatted string.
     #
-    # @param json [String,Hash] a JSON string representing the object, or the parsed Hash of the JSON data.
+    # @param json [String,Hash] a JSON string representing the object, or the parsed Hash of the JSON (symbol keys).
     #
     # @return [Object] the loaded object.
     def self.from_json(payload)

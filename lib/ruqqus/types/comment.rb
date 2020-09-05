@@ -6,31 +6,37 @@ module Ruqqus
   class Comment < Submission
 
     ##
-    # @return [Integer] the level of "nesting" in the comment tree, starting at `1` when in direct reply to the post.
-    def level
-      @data[:level]
-    end
+    # @!attribute [r] level
+    #   @return [Integer] the level of "nesting" in the comment tree, starting at `1` when in direct reply to the post.
 
     ##
-    # @return [String] the unique ID of the parent for this comment.
-    def parent_id
-      @data[:parent]
-    end
+    # @!attribute parent_id
+    #   @return [String] the unique ID of the parent for this comment.
 
     ##
-    # @return [Boolean] `true` if {#parent_id} refers to a comment, otherwise `false` if a post.
+    # @!attribute [r] post_id
+    #   @return [String] the ID of the post this comment belongs to.
+
+    ##
+    # @return [Boolean] `true` if the comment's parent is comment, otherwise `false` if it is a post.
     def parent_comment?
       level > 1
     end
 
     ##
-    # @return [Boolean] `true` if {#parent_id} refers to a post, otherwise `false` if a comment.
+    # @return [Boolean] `true` if the comment's parent is post, otherwise `false` if it is a comment.
     def parent_post?
       level == 1
     end
 
-    ##
-    # @return [String] the ID of the post this comment belongs to.
+    def level
+      @data[:level]
+    end
+
+    def parent_id
+      @data[:parent]
+    end
+
     def post_id
       @data[:post]
     end

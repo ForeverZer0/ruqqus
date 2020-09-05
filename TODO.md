@@ -8,8 +8,6 @@ A scratch pad for things to do and ideas to look into
 * Update README with more examples
 * Create wiki on GitHub
 * Finish and cleanup and `ruqqus-oauth` app
-* Groups in documentation
-* Front page method?
 * Embed comment/posts API 
 
 # Missing API features

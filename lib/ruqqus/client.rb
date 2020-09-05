@@ -146,10 +146,10 @@ module Ruqqus
     # @note This method is restricted to 6/minute, and will fail when that limit is exceeded.
     def comment_reply(body, comment)
       if comment.is_a?(Comment)
-        comment_submit(comment.full_name, comment.post_id, body)
+        comment_submit(comment.fullname, comment.post_id, body)
       else
         comment = self.comment(comment.to_s)
-        comment_submit(comment.full_name, comment.post_id, body)
+        comment_submit(comment.fullname, comment.post_id, body)
       end
     end
 

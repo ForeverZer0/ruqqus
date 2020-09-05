@@ -7,27 +7,25 @@ module Ruqqus
   class ItemBase
 
     ##
+    # @!attribute [r] permalink
+    #   @return [String] a relative link to this item.
+
+    ##
+    # @!attribute [r] created_utc
+    #   @return [Integer] the time the item was created, in seconds since the Unix epoch.
+
+    ##
+    # @!attribute [r] created
+    #   @return [Time] the time the item was created.
+
+    ##
+    # @!attribute [r] id
+    #   @return [String] a unique ID for this item.
+
+    ##
     # @return [Boolean] `true` if item has been banned, otherwise `false`.
     def banned?
       !!@data[:is_banned]
-    end
-
-    ##
-    # @return [Integer] the time the item was created, in seconds since the Unix epoch.
-    def created_utc
-      @data[:created_utc]
-    end
-
-    ##
-    # @return [Time] the time the item was created.
-    def created
-      Time.at(created_utc)
-    end
-
-    ##
-    # @return [String] a unique ID for this item.
-    def id
-      @data[:id]
     end
 
     ##
@@ -36,8 +34,18 @@ module Ruqqus
       self.class == other.class && id == other.id
     end
 
-    ##
-    # @return [String] a relative link to this item.
+    def created_utc
+      @data[:created_utc]
+    end
+
+    def created
+      Time.at(created_utc)
+    end
+
+    def id
+      @data[:id]
+    end
+
     def permalink
       @data[:permalink]
     end

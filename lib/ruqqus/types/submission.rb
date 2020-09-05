@@ -7,57 +7,53 @@ module Ruqqus
   class Submission < ItemBase
 
     ##
-    # @return [String?] the name of the creator of the item, or `nil` if deleted account.
-    def author_name
-      @data[:author]
-    end
+    # @!attribute [r] title
+    #   @return [String] the name/title of this item.
 
     ##
-    # @return [String] the text body of the item.
-    def body
-      @data[:body]
-    end
+    # @!attribute [r] author_name
+    #   @return [String?] the name of the creator of the item, or `nil` if deleted account.
 
     ##
-    # @return [String] the text body of the item in HTML format.
-    def body_html
-      @data[:body_html]
-    end
+    # @!attribute [r] body
+    #   @return [String] the text body of the item.
 
     ##
-    # @return [Integer] the time of the last edit in seconds since the Unix epoch, or `0` if never edited.
-    def last_edit_utc
-      @data[:edited_utc]
-    end
+    # @!attribute [r] body_html
+    #   @return [String] the text body of the item in HTML format.
 
     ##
-    # @return [Time] the time of the last edit.
-    def last_edit
-      Time.at(@data[:edited_utc])
-    end
+    # @!attribute [r] last_edit_utc
+    #   @return [Integer] the time of the last edit in seconds since the Unix epoch, or `0` if never edited.
+
+    ##
+    # @!attribute [r] last_edit
+    #   @return [Time] the time of the last edit.
+
+    ##
+    # @!attribute [r] upvotes
+    #   @return [Integer] the number of upvotes this item has received.
+
+    ##
+    # @!attribute [r] downvotes
+    #   @return [Integer] the number of downvotes this item has received.
+
+    ##
+    # @!attribute [r] score
+    # @return [Integer] a score calculated by adding upvotes and subtracting downvotes.
+
+    ##
+    # @!attribute [r] fullname
+    #   @return [String] the full ID of this item.
+
+    ##
+    # @!attribute [r] guild_name
+    #   @return [String] the name of the guild this item is contained within.
 
     ##
     # @return [Boolean] `true` if post has been edited, otherwise `false`.
     def edited?
       @data[:edited_utc] != 0
-    end
-
-    ##
-    # @return [Integer] the number of upvotes this item has received.
-    def upvotes
-      @data[:upvotes]
-    end
-
-    ##
-    # @return [Integer] the number of downvotes this item has received.
-    def downvotes
-      @data[:downvotes]
-    end
-
-    ##
-    # @return [Integer] a score calculated by adding upvotes and subtracting downvotes.
-    def score
-      @data[:score]
     end
 
     ##
@@ -91,27 +87,53 @@ module Ruqqus
     end
 
     ##
-    # @return [String] the full ID of this item.
-    def full_name
+    # @return [String] the string representation of the object.
+    def to_s
+      @data[:id]
+    end
+
+    def author_name
+      @data[:author]
+    end
+
+    def body
+      @data[:body]
+    end
+
+    def body_html
+      @data[:body_html]
+    end
+
+    def last_edit_utc
+      @data[:edited_utc]
+    end
+
+    def last_edit
+      Time.at(@data[:edited_utc])
+    end
+
+    def upvotes
+      @data[:upvotes]
+    end
+
+    def downvotes
+      @data[:downvotes]
+    end
+
+    def score
+      @data[:score]
+    end
+
+    def fullname
       @data[:fullname]
     end
 
-    ##
-    # @return [String] the name of the guild this item is contained within.
     def guild_name
       @data[:guild_name]
     end
 
-    ##
-    # @return [String] the name/title of this item.
     def title
       @data[:title]
-    end
-
-    ##
-    # @return [String] the string representation of the object.
-    def to_s
-      @data[:id]
     end
   end
 end

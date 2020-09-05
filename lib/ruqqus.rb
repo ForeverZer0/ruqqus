@@ -45,7 +45,7 @@ module Ruqqus
   end
 
   ##
-  # @!attribute proxy [rw]
+  # @!attribute self.proxy [rw]
   #   @return [URI?] the URI of the proxy server in use, or `nil` if none has been set.
 
   ##
