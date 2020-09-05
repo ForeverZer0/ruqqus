@@ -41,7 +41,7 @@ To use the `ruqqus-oauth` helper to generate user tokens for desktop development
 
 Ruqqus enables 3rd-party client authorization using the [OAuth2 protocol](https://oauth.net/2/). Before it is possible
 to interact with the API, you will need to first [register an application](https://ruqqus.com/settings/apps), which can
-be supply you with an API key/secret pair. This key will allow you to authorize users and grant privileges with a an
+be supply you with an API key/secret pair. This key will allow you to authorize users and grant privileges with an
 assortment of scopes to fit your needs.
 
 ### Desktop Development
