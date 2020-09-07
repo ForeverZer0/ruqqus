@@ -324,6 +324,54 @@ module Ruqqus
     end
 
     ##
+    # Enumerates through each comment in a guild, yielding each to a block.
+    #
+    # @param guild [Guild,String] a {Guild} instance, or the name of the guild to query.
+    # @yieldparam [Comment] yields a {Comment} to the block.
+    #
+    # @return [self]
+    # @raise [LocalJumpError] when a block is not supplied to the method.
+    def each_guild_comment(guild)
+      raise(LocalJumpError, 'block required') unless block_given?
+      name = guild.to_s
+      raise(ArgumentError, 'invalid guild name') unless Ruqqus::VALID_GUILD.match?(name)
+
+      page = 1
+      loop do
+        params = { page: page }
+        json = http_get("#{Routes::GUILD}#{name}/comments", headers(params: params))
+        break if json[:error]
+
+        json[:data].each { |hash| yield Comment.from_json(hash) }
+        break if json[:data].size < 25
+        page += 1
+      end
+
+      self
+    end
+
+    ##
+    # Enumerates through each comment in a guild, yielding each to a block.
+    #
+    # @param post [Post,String] a {Post} instance, or the unique ID of the post to query.
+    # @yieldparam [Comment] yields a {Comment} to the block.
+    #
+    # @return [self]
+    # @raise [LocalJumpError] when a block is not supplied to the method.
+    # @note This method is very inefficient, as it the underlying API does not yet implement it, therefore each comment
+    #   in the entire guild must be searched through.
+    def each_post_comment(post)
+      # TODO: This is extremely inefficient, but will have to do until it gets implemented in the API
+      raise(LocalJumpError, 'block required') unless block_given?
+      post = self.post(post) unless post.is_a?(Post)
+      each_guild_comment(post.guild_name) do |comment|
+        next unless comment.post_id == post.id
+        yield comment
+      end
+      self
+    end
+
+    ##
     # Enumerates through every post on Ruqqus, yielding each post to a block.
     #
     # @param opts [Hash] the options hash.

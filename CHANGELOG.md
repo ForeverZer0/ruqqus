@@ -2,6 +2,10 @@
 
 Documentation for library API changes.
 
+## Version 1.1.2
+
+* Implemented enumerating comments of guilds and posts
+
 ## Version 1.1.1
 
 * BUGFIX: Added acceptance of variable args to `Token#to_json`
