@@ -14,6 +14,7 @@ Versioning system:
 
 * Implemented browser-based confirmation process
 * Implemented capturing confirmation code from `localhost`  OAuth redirects
+* Fixed bug in querying guild/username availability
 
 ## Version 1.1.2
 
