@@ -13,6 +13,14 @@ module Ruqqus
 
     ##
     # A collection of valid scopes that can be authorized.
+    #
+    #   * `:identity` - See your username.
+    #   * `:create` - Save posts and comments as you
+    #   * `:read` - View Ruqqus as you, including private or restricted content
+    #   * `:update` - Edit your posts and comments
+    #   * `:delete` - Delete your posts and comments
+    #   * `:vote` - Cast votes as you
+    #   * `:guildmaster` - Perform Guildmaster actions
     SCOPES = %i(identity create read update delete vote guildmaster).freeze
 
     ##
