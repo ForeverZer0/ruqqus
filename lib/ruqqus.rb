@@ -1,5 +1,9 @@
-require 'rest-client'
+require 'base64'
 require 'json'
+require 'rbconfig'
+require 'rest-client'
+require 'securerandom'
+require 'socket'
 
 require_relative 'ruqqus/token'
 require_relative 'ruqqus/routes'
@@ -49,12 +53,14 @@ module Ruqqus
   #   @return [URI?] the URI of the proxy server in use, or `nil` if none has been set.
 
   ##
-  # Obtains a list of URIs of proxy servers that can be used to route network traffic through.
+  # Obtains a list of URIs of free proxy servers that can be used to route network traffic through.
   #
   # @param anon [Symbol] anonymity filter for the servers to return, either `:transparent`, `:anonymous`, or `:elite`.
   # @param country [String,Symbol] country filter for servers to return, an ISO-3166 two digit county code.
   #
   # @return [Array<URI>] an array of proxy URIs that match the input filters.
+  # @note These proxies are free, keep that in mind. They are refreshed frequently, can go down unexpectedly, be slow,
+  #   and other manners of inconvenience that can be expected with free services.
   # @see https://www.nationsonline.org/oneworld/country_code_list.htm
   def self.proxy_list(anon: :elite, country: nil)
     raise(ArgumentError, 'invalid anonymity value') unless %i(transparent anonymous elite).include?(anon.to_sym)
@@ -83,7 +89,7 @@ module Ruqqus
   #
   # @param client_id [String] an Imgur client ID
   # @param image_path [String] the path to an image file.
-  # @params opts [Hash] the options hash.
+  # @param opts [Hash] the options hash.
   # @option opts [String] :title a title to set on the Imgur post
   # @option opts [String] :description a description to set on the Imgur post
   #
@@ -124,7 +130,112 @@ module Ruqqus
     available?(username, VALID_USERNAME, "#{Routes::USERNAME_AVAILABLE}#{name}")
   end
 
+  ##
+  # Generates a URL for the user to navigate to that will allow them to authorize an application.
+  #
+  # @param client_id [String] the unique ID of the approved client to authorize.
+  # @param redirect [String] the redirect URL where the client sends the OAuth authorization code.
+  # @param scopes [Array<Symbol>] a collection of values indicating the permissions the application is requesting from
+  #   the user. See {Ruqqus::Client::SCOPES} for valid values.
+  # @param permanent [Boolean] `true` if authorization should persist until user explicitly revokes it,
+  #   otherwise `false`.
+  # @param csrf [String] a token to authenticate and prevent a cross-site request forgery (CSRF) attack, or `nil` if
+  #   you do not plan to validate the presence of the cookie in the redirection.
+  #
+  # @see https://ruqqus.com/settings/apps
+  # @see https://owasp.org/www-community/attacks/csrf
+  def self.authorize_url(client_id, redirect, scopes, permanent = true, csrf = nil)
+
+    raise(ArgumentError, 'invalid redirect URI') unless URI.regexp =~ redirect
+    raise(ArgumentError, 'scopes cannot be empty') unless scopes && !scopes.empty?
+
+    scopes = scopes.map(&:to_sym)
+    raise(ArgumentError, "invalid scopes specified") unless scopes.all? { |s| Client::SCOPES.include?(s) }
+    if scopes.any? { |s| [:create, :update, :guildmaster].include?(s) } && !scopes.include?(:identity)
+      # Add identity permission if missing, which is obviously required for a few other permissions
+      scopes << :identity
+    end
+
+    url = 'https://ruqqus.com/oauth/authorize'
+    url << "?client_id=#{client_id || raise(ArgumentError, 'client ID cannot be nil')}"
+    url << "&redirect_uri=#{redirect}"
+    url << "&scope=#{scopes.join(',')}"
+    url << "&state=#{csrf || Base64.encode64(SecureRandom.uuid).chomp}"
+    url << "&permanent=#{permanent}"
+    url
+  end
+
+
+  ##
+  # Opens a URL in the system's default web browser, using the appropriate command for the host platform.
+  #
+  # @param [String] the URL to open.
+  #
+  # @return [void]
+  def self.open_browser(url)
+
+    cmd = case RbConfig::CONFIG['host_os']
+    when /mswin|mingw|cygwin/ then "start #{url}" # TODO: Test quote behavior
+    when /darwin/ then "open '#{url}'"
+    when /linux|bsd/ then "xdg-open '#{url}'"
+    else raise(Ruqqus::Error, 'unable to determine how to open URL for platform')
+    end
+
+    system(cmd)
+  end
+
+  ##
+  # If using a `localhost` address for your application's OAuth redirect, this method can be used to open a socket and
+  # listen for a request, returning the authorization code once it arrives.
+  #
+  # @param port [Integer] the port to listen on.
+  # @param timeout [Numeric] sets the number of seconds to wait before cancelling and returning `nil`.
+  #
+  # @return [String?] the authorization code, `nil` if an error occurred.
+  # @note This method is blocking, and will *not* return until a connection is made and data is received on the
+  #   specified port, or the timeout is reached.
+  def self.wait_for_code(port, timeout = 30)
+
+    thread = Thread.new do
+      sleep(timeout)
+      TCPSocket.open('localhost', port) { |s| s.puts }
+    end
+
+    params = {}
+    TCPServer.open('localhost', port) do |server|
+
+      session = server.accept
+      request = session.gets
+      match = /^GET [\/?]+(.*) HTTP.*/.match(request)
+
+      Thread.kill(thread)
+      return nil unless match
+
+      $1.split('&').each do |str|
+        key, value = str.split('=')
+        next unless key && value
+        params[key.to_sym] = value
+      end
+
+      session.puts "HTTP/1.1 200\r\n"
+      session.puts "Content-Type: text/html\r\n"
+      session.puts "\r\n"
+      session.puts create_response
+
+      session.close
+    end
+
+    params[:code]
+  end
+
   private
+
+  ##
+  # @return [String] a generic confirmation page to display in the user's browser after confirming application access.
+  def self.create_response
+    path = File.join(__dir__, 'ruqqus', 'confirm.html')
+    File.exist?(path) ? File.read(path) : 'Authorization Confirmed'
+  end
 
   ##
   # Checks if the specified guild or user name is available to be created.

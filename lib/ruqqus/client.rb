@@ -62,7 +62,7 @@ module Ruqqus
     #
     # @return [User] the requested {User}.
     #
-    # @raise [ArgumentError] when `username` is `nil` or value does match the {VALID_USERNAME} regular expression.
+    # @raise [ArgumentError] when `username` is `nil` or value does match the {Ruqqus::VALID_USERNAME} regular expression.
     # @raise [Error] thrown when user account does not exist.
     def user(username)
       raise(ArgumentError, 'username cannot be nil') unless username
@@ -77,7 +77,7 @@ module Ruqqus
     #
     # @return [Guild] the requested {Guild}.
     #
-    # @raise [ArgumentError] when `guild_name` is `nil` or value does match the {VALID_GUILD} regular expression.
+    # @raise [ArgumentError] when `guild_name` is `nil` or value does match the {Ruqqus::VALID_GUILD} regular expression.
     # @raise [Error] thrown when guild does not exist.
     def guild(guild_name)
       raise(ArgumentError, 'guild_name cannot be nil') unless guild_name
@@ -92,7 +92,7 @@ module Ruqqus
     #
     # @return [Post] the requested {Post}.
     #
-    # @raise [ArgumentError] when `post_id` is `nil` or value does match the {VALID_POST} regular expression.
+    # @raise [ArgumentError] when `post_id` is `nil` or value does match the {Ruqqus::VALID_POST} regular expression.
     # @raise [Error] thrown when a post with the specified ID does not exist.
     def post(post_id)
       raise(ArgumentError, 'post_id cannot be nil') unless post_id
@@ -107,7 +107,7 @@ module Ruqqus
     #
     # @return [Comment] the requested {Comment}.
     #
-    # @raise [ArgumentError] when `comment_id` is `nil` or value does match the {VALID_POST} regular expression.
+    # @raise [ArgumentError] when `comment_id` is `nil` or value does match the {Ruqqus::VALID_POST} regular expression.
     # @raise [Error] when a comment with the specified ID does not exist.
     def comment(comment_id)
       raise(ArgumentError, 'comment_id cannot be nil') unless comment_id
