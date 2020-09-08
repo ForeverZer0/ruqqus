@@ -117,7 +117,14 @@ module Ruqqus
   #
   # @return [Boolean] `true` is name is available, otherwise `false` if it has been reserved or is in use.
   def self.guild_available?(guild_name)
-    available?(guild_name, VALID_GUILD, "#{Routes::GUILD_AVAILABLE}#{name}")
+    begin
+      response = RestClient.get("#{Routes::GUILD_AVAILABLE}#{guild_name}")
+      json = JSON.parse(response.body, symbolize_names: true)
+      return json[:available]
+    rescue
+      puts 'err'
+      return false
+    end
   end
 
   ##
@@ -127,7 +134,13 @@ module Ruqqus
   #
   # @return [Boolean] `true` is name is available, otherwise `false` if it has been reserved or is in use.
   def self.username_available?(username)
-    available?(username, VALID_USERNAME, "#{Routes::USERNAME_AVAILABLE}#{name}")
+    begin
+      response = RestClient.get("#{Routes::USERNAME_AVAILABLE}#{username}")
+      json = JSON.parse(response.body)
+      return json[username]
+    rescue
+      return false
+    end
   end
 
   ##
@@ -261,19 +274,5 @@ module Ruqqus
 </body>
 </html>
     EOS
-  end
-
-  ##
-  # Checks if the specified guild or user name is available to be created.
-  #
-  # @param name [String] the name of a guild or username to query.
-  # @param regex [Regex] a validation regex for the name.
-  # @param route [String] the API endpoint to invoke.
-  #
-  # @return [Boolean] `true` is name is available, otherwise `false` if it has been reserved or is in use.
-  def self.available?(name, regex, route)
-    return false unless name && regex.match?(name)
-    json = JSON.parse(RestClient.get(route))
-    !!json[name]
   end
 end
