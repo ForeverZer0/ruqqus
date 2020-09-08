@@ -2,6 +2,19 @@
 
 Documentation for library API changes.
 
+Versioning system:
+
+`MAJOR.MINOR.REVISION`
+
+* `MAJOR` Corresponds to the native Ruqqus API major version
+* `MINOR` Indicates possible breaking API changes for existing code
+* `REVISION` Added functionality, bug-fixes, and other non-breaking alterations
+
+## Version 1.1.3
+
+* Implemented browser-based confirmation process
+* Implemented capturing confirmation code from `localhost`  OAuth redirects
+
 ## Version 1.1.2
 
 * Implemented enumerating comments of guilds and posts

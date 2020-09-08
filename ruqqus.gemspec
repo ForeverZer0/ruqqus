@@ -36,7 +36,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency('rest-client', '~> 2.1')
 
   spec.add_development_dependency('mechanize', '~> 2.7')
-  spec.add_development_dependency('rake', '~> 13.0')
   spec.add_development_dependency('tty-prompt', '~> 0.22')
   spec.add_development_dependency('yard', '~> 0.9')
+
+  spec.post_install_message = 'Please listen to this song I wrote. The song is called "Endless Summer".'
 end
