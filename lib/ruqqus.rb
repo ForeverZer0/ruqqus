@@ -175,10 +175,10 @@ module Ruqqus
   def self.open_browser(url)
 
     cmd = case RbConfig::CONFIG['host_os']
-    when /mswin|mingw|cygwin/ then "start #{url}" # TODO: Test quote behavior
+    when /mswin|mingw|cygwin/ then "start \"\"#{url}\"\""
     when /darwin/ then "open '#{url}'"
     when /linux|bsd/ then "xdg-open '#{url}'"
-    else raise(Ruqqus::Error, 'unable to determine how to open URL for platform')
+    else raise(Ruqqus::Error, 'unable to determine how to open URL for current platform')
     end
 
     system(cmd)
@@ -220,7 +220,7 @@ module Ruqqus
       session.puts "HTTP/1.1 200\r\n"
       session.puts "Content-Type: text/html\r\n"
       session.puts "\r\n"
-      session.puts create_response
+      session.puts create_response(!!params[:code])
 
       session.close
     end
@@ -232,9 +232,35 @@ module Ruqqus
 
   ##
   # @return [String] a generic confirmation page to display in the user's browser after confirming application access.
-  def self.create_response
-    path = File.join(__dir__, 'ruqqus', 'confirm.html')
-    File.exist?(path) ? File.read(path) : 'Authorization Confirmed'
+  def self.create_response(success)
+    args = success ? ['#339966', 'Authorization Confirmed'] : ['#ff0000', 'Authorization Failed']
+    format ='<h1 style="text-align: center;"><span style="color: %s;"><strong>%s</strong></span></h1>'
+    message = sprintf(format, *args)
+    <<-EOS
+<html>
+<head>
+    <style>
+    .center {
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+  </style>
+</head>
+<body>
+<div class="center">
+    <div><img src="https://raw.githubusercontent.com/ruqqus/ruqqus/master/ruqqus/assets/images/logo/ruqqus_text_logo.png" alt="" width="365" height="92" /></div>
+    <p style="text-align: center;">&nbsp;</p>
+    #{message}
+    <p style="text-align: center;">&nbsp;&nbsp;</p>
+    <p style="text-align: center;"><span style="color: #808080;">You can safely close the tab/browser and return to the application.</span></p>
+</div>
+</body>
+</html>
+    EOS
   end
 
   ##
