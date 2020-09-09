@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/ruqqus/ruqqus/master/ruqqus/assets/images/logo/ruqqus_text_logo.png" width="250"/>
+<img src="https://raw.githubusercontent.com/ForeverZer0/ruqqus/master/assets/ruqqus_text_logo.png" width="360"/>
 </p>
 
 <hr>
