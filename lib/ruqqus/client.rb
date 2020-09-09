@@ -52,6 +52,7 @@ module Ruqqus
       @client_secret = client_secret || raise(ArgumentError, 'client secret cannot be nil')
 
       @token = token.is_a?(Token) ? token : Token.new(client_id, client_secret, token.to_s)
+      @token.refresh(client_id, client_secret)
       @session = nil
     end
 
@@ -563,7 +564,7 @@ module Ruqqus
     # @api private
     # Checks if token is expired, and refreshes if so, calling the {#token_refreshed} block as if defined.
     def refresh_token
-      return unless @token.expired?
+      return unless @token.need_refresh?
       @token.refresh(@client_id, @client_secret)
       @refreshed&.call(@token)
     end

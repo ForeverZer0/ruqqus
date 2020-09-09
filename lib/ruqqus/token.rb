@@ -5,6 +5,10 @@ module Ruqqus
   class Token
 
     ##
+    # The minimum number of seconds that can remain before the token refreshes itself.
+    REFRESH_THRESHOLD = 60
+
+    ##
     # @!attribute [r] access_token
     #   @return [String] the access token value.
 
@@ -74,12 +78,19 @@ module Ruqqus
       data = JSON.parse(resp.body, symbolize_names: true)
       raise(Ruqqus::Error, 'failed to refresh authentication token') unless resp.code == 200 || data[:oauth_error]
       @data.merge!(data)
+      sleep(1) # TODO: Test. Get internment 401 error when token needs refreshed
     end
 
     ##
     # @return [Boolean] `true` if token is expired, otherwise `false`.
     def expired?
       expires <= Time.now
+    end
+
+    ##
+    # @return [Boolean] `true` if remaining lifetime is within the {REFRESH_THRESHOLD}, otherwise `false`.
+    def need_refresh?
+      (expires - Time.now) < REFRESH_THRESHOLD
     end
 
     ##

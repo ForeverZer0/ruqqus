@@ -97,7 +97,10 @@ and where you store this information so that it is not compromised.
 
 ## Usage
 
-See the [documentation](https://www.rubydoc.info/gems/ruqqus) for a complete API reference (100% coverage).
+For in-depth documentation and instructions on how to get started, please see the following resources:
+
+* [API Documentation](https://www.rubydoc.info/gems/ruqqus) - Complete documentation of the entire API (100% coverage)
+* [Wiki](https://github.com/ForeverZer0/ruqqus/wiki) - Public wiki with more in-depth explanation, code samples, best practices, etc.
 
 ### Features
 
