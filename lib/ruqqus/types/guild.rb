@@ -41,6 +41,10 @@ module Ruqqus
     #   @return [String] the URL for the banner image associated with the guild.
 
     ##
+    # @!attribute [r] guildmasters
+    #   @return [Array<User>] an array of {User} instances of the moderators for this guild.
+
+    ##
     # @return [Boolean] `true` if the guild contains adult content and flagged as NSFW, otherwise `false`.
     def nsfw?
       @data[:over_18]
@@ -98,6 +102,11 @@ module Ruqqus
 
     def fullname
       @data[:fullname]
+    end
+
+    def guildmasters
+      return Array.new unless @data[:guildmasters]
+      @data[:guildmasters].map { |gm| User.from_json(gm) }
     end
   end
 end

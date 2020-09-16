@@ -10,6 +10,11 @@ Versioning system:
 * `MINOR` Indicates possible breaking API changes for existing code
 * `REVISION` Added functionality, bug-fixes, and other non-breaking alterations
 
+## Version 1.1.5
+
+* Added `Ruqqus::Clien#post_delete` method
+* Added `Ruqqus::Guild#guildmasters` attribute
+
 ## Version 1.1.4
 
 * Improved the way refreshing works to do so within a certain threshold

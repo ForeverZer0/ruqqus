@@ -174,6 +174,18 @@ module Ruqqus
       http_post(url).empty? rescue false
     end
 
+    ##
+    # Deletes an existing post.
+    #
+    # @param post [Comment,String] a {Post} instance, or the unique ID of the post to delete.
+    #
+    # @return [Boolean] `true` if deletion completed without error, otherwise `false`.
+    def post_delete(post)
+      id = post.is_a?(Post) ? post.id : post.sub(/^t3_/, '')
+      url = "#{Routes::API_BASE}/delete_post/#{id}"
+      http_post(url).empty? rescue false
+    end
+
     # @!endgroup Commenting
 
     # @!group Posting
